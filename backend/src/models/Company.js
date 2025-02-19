@@ -33,40 +33,187 @@ export class Company {
     return !!data;
   }
 
+  static getPaymentPeriods(paymentFrequency) {
+    const periods = {
+      'weekly': [52, 40, 28],     // ~12 meses, ~9 meses, ~6 meses
+      'biweekly': [24, 18, 12],   // 12 meses, 9 meses, 6 meses
+      'fortnightly': [26, 20, 13], // ~12 meses, ~9 meses, ~6 meses
+      'monthly': [12, 9, 6]       // 12 meses, 9 meses, 6 meses
+    };
+    return periods[paymentFrequency] || periods.monthly;
+  }
+
+  static getPaymentFrequencyLabel(paymentFrequency) {
+    const labels = {
+      'weekly': 'semanas',
+      'biweekly': 'quincenas',
+      'fortnightly': 'catorcenas',
+      'monthly': 'meses'
+    };
+    return labels[paymentFrequency] || 'meses';
+  }
+
   static async calculatePayments(companyId, amount) {
     const company = await this.getById(companyId);
     if (!company) throw new Error('Company not found');
 
-    // Get company-specific financing terms
-    const { interest_rate, max_months } = company;
+    const { interest_rate, payment_frequency = 'monthly' } = company;
+    const periods = this.getPaymentPeriods(payment_frequency);
+    const paymentsPerYear = {
+      'weekly': 52,
+      'biweekly': 24,
+      'fortnightly': 26,
+      'monthly': 12
+    }[payment_frequency] || 12;
+
+    const IVA_RATE = 0.16; // 16% IVA
     
-    // Calculate monthly payments for different terms
-    const payments = [];
-    for (let months = 3; months <= max_months; months += 3) {
-      const monthlyInterest = interest_rate / 12 / 100;
-      const monthlyPayment = (amount * monthlyInterest * Math.pow(1 + monthlyInterest, months)) / 
-                            (Math.pow(1 + monthlyInterest, months) - 1);
+    // Helper function to round values to 2 decimal places
+    const redondear = (valor) => Math.round(valor * 100) / 100;
+
+    // Helper function to calculate IRR using Newton-Raphson method
+    const irr = (flows, guess = 0.1) => {
+      let rate = guess;
+      for (let iter = 0; iter < 100; iter++) {
+        let f = 0;    // function value
+        let df = 0;   // derivative for Newton-Raphson
+        for (let t = 0; t < flows.length; t++) {
+          const v = Math.pow(1 + rate, -t);
+          f += flows[t] * v;
+          df += -t * flows[t] * Math.pow(1 + rate, -t - 1);
+        }
+        const newRate = rate - f/df;
+        if (Math.abs(newRate - rate) < 1e-7) {
+          return newRate;
+        }
+        rate = newRate;
+      }
+      return rate;
+    };
+
+    // Helper function to compute CAT from periodic IRR
+    const computeCAT = (tirPorPeriodo, periodosPorAño) => {
+      return redondear((Math.pow(1 + tirPorPeriodo, periodosPorAño) - 1) * 100);
+    };
+
+    // Helper function to calculate final balance for a given payment amount
+    const calcularSaldoFinal = (principal, tasaMensual, numPagos, pagoMensual) => {
+      let saldo = principal;
+      for (let i = 0; i < numPagos; i++) {
+        const interes = redondear(saldo * tasaMensual);
+        const iva = redondear(interes * IVA_RATE);
+        const capital = redondear(pagoMensual - (interes + iva));
+        saldo = redondear(saldo - capital);
+      }
+      return saldo;
+    };
+
+    // Helper function to find the fixed payment using binary search
+    const encontrarPagoFijo = (principal, tasaMensual, numPagos) => {
+      let min = 0;
+      let max = principal * 2;
+      let pagoOptimo = 0;
       
-      payments.push({
-        months,
-        monthlyPayment: Math.round(monthlyPayment * 100) / 100,
-        totalPayment: Math.round(monthlyPayment * months * 100) / 100,
-        interestRate: interest_rate
-      });
-    }
+      while ((max - min) > 0.01) {
+        const pago = (min + max) / 2;
+        const saldoFinal = calcularSaldoFinal(principal, tasaMensual, numPagos, pago);
+        
+        if (Math.abs(saldoFinal) < 0.01) {
+          pagoOptimo = pago;
+          break;
+        } else if (saldoFinal > 0) {
+          min = pago;
+        } else {
+          max = pago;
+        }
+        pagoOptimo = pago;
+      }
+      
+      return redondear(pagoOptimo);
+    };
+
+    // Helper function to generate amortization table
+    const generarTablaAmortizacion = (principal, tasaMensual, numPagos, pagoFijo) => {
+      let saldo = principal;
+      let totalInteres = 0;
+      let totalIVA = 0;
+      let totalPagado = 0;
+      
+      for (let i = 0; i < numPagos; i++) {
+        const interes = redondear(saldo * tasaMensual);
+        const iva = redondear(interes * IVA_RATE);
+        const capital = redondear(pagoFijo - (interes + iva));
+        
+        totalInteres = redondear(totalInteres + interes);
+        totalIVA = redondear(totalIVA + iva);
+        totalPagado = redondear(totalPagado + pagoFijo);
+        saldo = redondear(saldo - capital);
+      }
+      
+      return {
+        totalInteres,
+        totalIVA,
+        totalPagado
+      };
+    };
+
+    // Calculate payments for each period option
+    const payments = periods.map(totalPeriods => {
+      // Calculate periodic rate
+      const periodicRate = interest_rate / 100 / paymentsPerYear;
+      
+      // Find the fixed payment that results in zero balance
+      const fixedPayment = encontrarPagoFijo(amount, periodicRate, totalPeriods);
+      
+      // Generate complete amortization table and get totals
+      const { totalInteres, totalIVA, totalPagado } = generarTablaAmortizacion(
+        amount, 
+        periodicRate, 
+        totalPeriods, 
+        fixedPayment
+      );
+
+      // Calculate CAT using IRR method
+      const flows = [-amount];
+      for (let i = 0; i < totalPeriods; i++) {
+        flows.push(fixedPayment);
+      }
+      const tirPeriodica = irr(flows);
+      const cat = computeCAT(tirPeriodica, paymentsPerYear);
+
+      return {
+        periods: totalPeriods,
+        periodLabel: this.getPaymentFrequencyLabel(payment_frequency),
+        paymentPerPeriod: fixedPayment,
+        totalPayment: totalPagado,
+        totalInterest: totalInteres,
+        totalIVA: totalIVA,
+        interestRate: interest_rate,
+        paymentFrequency: payment_frequency,
+        cat: cat
+      };
+    });
 
     return payments;
   }
 
   static async create(companyData) {
-    const { name, interestRates, employeeCode } = companyData;
+    const { 
+      name, 
+      employee_code, 
+      interest_rate, 
+      payment_frequency,
+      payment_day,
+      max_credit_amount,
+      min_credit_amount
+    } = companyData;
     
     try {
       // Verificar si el código ya existe
       const { data: existingCompany } = await supabase
         .from('companies')
         .select('*')
-        .eq('employee_code', employeeCode)
+        .eq('employee_code', employee_code)
         .single();
       
       if (existingCompany) {
@@ -78,8 +225,12 @@ export class Company {
         .from('companies')
         .insert([{
           name,
-          interest_rates: interestRates,
-          employee_code: employeeCode,
+          employee_code,
+          interest_rate,
+          payment_frequency,
+          payment_day,
+          max_credit_amount,
+          min_credit_amount,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
@@ -91,8 +242,12 @@ export class Company {
       return {
         id: data.id,
         name: data.name,
-        employeeCode: data.employee_code,
-        interestRates: data.interest_rates
+        employee_code: data.employee_code,
+        interest_rate: data.interest_rate,
+        payment_frequency: data.payment_frequency,
+        payment_day: data.payment_day,
+        max_credit_amount: data.max_credit_amount,
+        min_credit_amount: data.min_credit_amount
       };
     } catch (error) {
       console.error('Error creating company:', error);
@@ -114,8 +269,12 @@ export class Company {
       return {
         id: data.id,
         name: data.name,
-        employeeCode: data.employee_code,
-        interestRates: data.interest_rates
+        employee_code: data.employee_code,
+        interest_rate: data.interest_rate,
+        payment_frequency: data.payment_frequency,
+        payment_day: data.payment_day,
+        max_credit_amount: data.max_credit_amount,
+        min_credit_amount: data.min_credit_amount
       };
     } catch (error) {
       console.error('Error getting company:', error);
@@ -141,8 +300,12 @@ export class Company {
       return {
         id: data.id,
         name: data.name,
-        employeeCode: data.employee_code,
-        interestRates: data.interest_rates
+        employee_code: data.employee_code,
+        interest_rate: data.interest_rate,
+        payment_frequency: data.payment_frequency,
+        payment_day: data.payment_day,
+        max_credit_amount: data.max_credit_amount,
+        min_credit_amount: data.min_credit_amount
       };
     } catch (error) {
       console.error('Error updating company:', error);

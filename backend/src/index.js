@@ -28,6 +28,19 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Fincentest API is running',
+    version: '1.0.0',
+    endpoints: {
+      '/api/companies': 'Company management endpoints',
+      '/api/product/info': 'Product information scraping endpoint',
+      '/health': 'Health check endpoint'
+    }
+  });
+});
+
 // Routes
 app.post('/api/product/info', async (req, res) => {
   console.log('Received product info request:', req.body);

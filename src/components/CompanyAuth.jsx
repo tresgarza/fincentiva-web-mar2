@@ -1,26 +1,11 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getCompanies, getByCode } from '../services/api';
+import Button from './Button';
 
 const CompanyAuth = ({ onAuthenticated }) => {
-  const [companies, setCompanies] = useState([]);
-  const [selectedCompany, setSelectedCompany] = useState('');
-  const [password, setPassword] = useState('');
+  const [employeeCode, setEmployeeCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/companies');
-        setCompanies(response.data);
-      } catch (error) {
-        setError('Error loading companies');
-        console.error('Error fetching companies:', error);
-      }
-    };
-
-    fetchCompanies();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,14 +13,10 @@ const CompanyAuth = ({ onAuthenticated }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/companies/verify-password', {
-        companyId: selectedCompany,
-        password
-      });
-
-      onAuthenticated(response.data);
+      const companyData = await getByCode(employeeCode);
+      onAuthenticated(companyData);
     } catch (error) {
-      setError(error.response?.data?.error || 'Authentication failed');
+      setError(error.message || 'Error al verificar credenciales');
       console.error('Authentication error:', error);
     } finally {
       setIsLoading(false);
@@ -43,57 +24,37 @@ const CompanyAuth = ({ onAuthenticated }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="company" className="block text-sm font-medium text-gray-300">
-            Select Company
-          </label>
-          <select
-            id="company"
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Select a company...</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
-          </select>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label htmlFor="employeeCode" className="block text-sm font-medium text-n-3 mb-2">
+          Código de Empresa
+        </label>
+        <input
+          type="text"
+          id="employeeCode"
+          value={employeeCode}
+          onChange={(e) => setEmployeeCode(e.target.value)}
+          required
+          className="w-full px-4 py-3 rounded-lg bg-n-7 text-n-1 border border-n-6 focus:outline-none focus:border-n-3"
+          placeholder="Ingresa el código de tu empresa"
+        />
+      </div>
+
+      {error && (
+        <div className="text-red-500 text-sm bg-red-500/10 px-4 py-2 rounded-lg">
+          {error}
         </div>
+      )}
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        {error && (
-          <div className="text-red-500 text-sm">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          {isLoading ? 'Authenticating...' : 'Login'}
-        </button>
-      </form>
-    </div>
+      <Button
+        className="w-full"
+        type="submit"
+        disabled={isLoading}
+        white={!isLoading}
+      >
+        {isLoading ? "Verificando..." : "Continuar"}
+      </Button>
+    </form>
   );
 };
 

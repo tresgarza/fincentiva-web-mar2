@@ -4,6 +4,60 @@ const API_URL = process.env.NODE_ENV === 'production'
 
 console.log('API URL:', API_URL);
 
+export async function getCompanies() {
+  try {
+    const response = await fetch(`${API_URL}/companies`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al obtener la lista de empresas');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    throw new Error('Error al cargar la lista de empresas');
+  }
+}
+
+export async function getByCode(employeeCode) {
+  try {
+    const response = await fetch(`${API_URL}/companies/code/${employeeCode}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al verificar credenciales');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting company by code:', error);
+    throw new Error('Error al verificar las credenciales de la empresa');
+  }
+}
+
+export async function verifyCompanyPassword(companyId, password) {
+  try {
+    const response = await fetch(`${API_URL}/companies/verify-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyId, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al verificar credenciales');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error verifying company password:', error);
+    throw new Error('Error al verificar las credenciales de la empresa');
+  }
+}
+
 export async function getProductInfo(url) {
   console.log('Sending request to backend for URL:', url);
   
