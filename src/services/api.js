@@ -1,6 +1,6 @@
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://fincentiva-empresas-backend.vercel.app/api'
-  : '/api';
+  ? 'https://api.fincentiva.com/api'
+  : 'http://localhost:3000/api';
 
 console.log('API URL:', API_URL);
 
