@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { scrapeAmazonProduct, scrapeMercadoLibreProduct } from './scrapers/index.js';
+import { scrapeAmazonProduct, scrapeMercadoLibreProduct, scrapeLiverpoolProduct, scrapeWalmartProduct, scrapePalacioHierroProduct } from './scrapers/index.js';
 import companyRoutes from './routes/company.routes.js';
 
 dotenv.config();
@@ -56,15 +56,27 @@ app.post('/api/product/info', async (req, res) => {
     let productData;
     console.log('Processing URL:', url);
 
-    if (url.includes('amazon')) {
+    if (url.includes('amazon.com.mx')) {
       console.log('Detected Amazon URL, starting scraper...');
       productData = await scrapeAmazonProduct(url);
-    } else if (url.includes('mercadolibre')) {
+    } else if (url.includes('mercadolibre.com.mx')) {
       console.log('Detected MercadoLibre URL, starting scraper...');
       productData = await scrapeMercadoLibreProduct(url);
+    } else if (url.includes('liverpool.com.mx')) {
+      console.log('Detected Liverpool URL, starting scraper...');
+      productData = await scrapeLiverpoolProduct(url);
+    } else if (url.includes('walmart.com.mx')) {
+      console.log('Detected Walmart URL, starting scraper...');
+      productData = await scrapeWalmartProduct(url);
+    } else if (url.includes('elpalaciodehierro.com')) {
+      console.log('Detected Palacio de Hierro URL, starting scraper...');
+      productData = await scrapePalacioHierroProduct(url);
     } else {
       console.log('Unsupported URL domain');
-      return res.status(400).json({ error: 'URL no soportada' });
+      return res.status(400).json({ 
+        error: 'URL no soportada',
+        message: 'Por favor ingresa una URL de Amazon, MercadoLibre, Liverpool, Walmart o El Palacio de Hierro'
+      });
     }
 
     console.log('Successfully processed product:', productData);

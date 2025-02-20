@@ -8,6 +8,7 @@ import ProductLinkForm from "./components/ProductLinkForm";
 import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
 import { getProductInfo } from "./services/api";
+import Typewriter from 'typewriter-effect';
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -45,16 +46,54 @@ const App = () => {
   // If not authenticated, show only the auth form
   if (!companyData) {
     return (
-      <div className="min-h-screen bg-n-8 text-n-1">
+      <div className="min-h-screen bg-n-8 text-n-1 relative overflow-hidden">
+        {/* Background particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 opacity-30 animate-pulse-slow"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 4}s`,
+              }}
+            />
+          ))}
+        </div>
+
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-[40rem] mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-4">Fincentiva</h1>
-              <p className="text-n-3">Financiamiento instantáneo para tus compras en línea</p>
+            <div className="text-center mb-12">
+              <h1 className="text-5xl font-bold mb-8 bg-gradient-to-r from-color-1 via-color-2 to-color-3 bg-clip-text text-transparent">
+                Fincentiva
+              </h1>
+              <div className="text-2xl text-n-3 h-20">
+                <Typewriter
+                  options={{
+                    strings: [
+                      'Financia tus sueños...',
+                      'Compra muebles...',
+                      'Adquiere electrodomésticos...',
+                      'Renueva tu tecnología...',
+                      'Lo que necesites en los mejores marketplace de México'
+                    ],
+                    autoStart: true,
+                    loop: true,
+                    delay: 50,
+                    deleteSpeed: 30,
+                  }}
+                />
+              </div>
             </div>
-            <div className="relative z-1 p-0.5 rounded-2xl bg-conic-gradient">
-              <div className="relative bg-n-8 rounded-[1rem] p-8">
-                <h3 className="h3 mb-4 text-center">Acceso Empresarial</h3>
+            <div className="relative">
+              {/* Animated gradient border */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-color-1 via-color-2 to-color-3 rounded-2xl opacity-75 blur animate-gradient"></div>
+              
+              <div className="relative bg-n-8 rounded-[1rem] p-8 shadow-2xl backdrop-blur-sm">
+                <h3 className="h3 mb-6 text-center bg-gradient-to-r from-color-1 to-color-2 bg-clip-text text-transparent">
+                  Acceso Empresarial
+                </h3>
                 <CompanyAuth onAuthenticated={handleCompanyAuthenticated} />
               </div>
             </div>

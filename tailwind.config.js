@@ -12,12 +12,12 @@ export default {
     extend: {
       colors: {
         color: {
-          1: "#AC6AFF",
-          2: "#FFC876",
-          3: "#FF776F",
-          4: "#7ADB78",
-          5: "#858DFF",
-          6: "#FF98E2",
+          1: "#00A650",
+          2: "#39B54A",
+          3: "#00833F",
+          4: "#4D4D4D",
+          5: "#666666",
+          6: "#999999",
         },
         stroke: {
           1: "#26242C",
@@ -37,6 +37,12 @@ export default {
           12: "#2E2A41",
           13: "#6C7275",
         },
+        primary: {
+          500: "#00A650",
+        },
+        secondary: {
+          500: "#39B54A",
+        }
       },
       fontFamily: {
         sans: ["var(--font-sora)", ...fontFamily.sans],
@@ -80,6 +86,43 @@ export default {
         "benefit-card-4": "url(assets/benefits/card-4.svg)",
         "benefit-card-5": "url(assets/benefits/card-5.svg)",
         "benefit-card-6": "url(assets/benefits/card-6.svg)",
+      },
+      boxShadow: {
+        'amazon': '0 0 50px rgba(255, 153, 0, 0.3)',
+        'mercadolibre': '0 0 50px rgba(255, 230, 0, 0.3)',
+        'card': '0 8px 16px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 16px 32px rgba(0, 0, 0, 0.2)',
+      },
+      animation: {
+        'fadeIn': 'fadeIn 0.5s ease-in forwards',
+        'slideUp': 'slideUp 0.5s ease-out forwards',
+        'float': 'float 3s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'gradient': 'gradient 6s linear infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          }
+        },
       },
     },
   },

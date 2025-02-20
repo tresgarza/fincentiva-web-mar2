@@ -1,118 +1,195 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ScrollParallax } from "react-just-parallax";
-import Typewriter from "typewriter-effect";
-
-import { curve, heroBackground } from "../assets";
-import Button from "./Button";
+import { heroIcons } from "../constants";
+import { curve } from "../assets";
 import CompanyLogos from "./CompanyLogos";
 import { BackgroundCircles, BottomLine, Gradient } from "./design/Hero";
-import Generating from "./Generating";
-import Notification from "./Notification";
 import Section from "./Section";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import Typewriter from 'typewriter-effect';
 
 const Hero = () => {
   const parallaxRef = useRef(null);
+  const bgParticlesRef = useRef(null);
+
+  const marketplaces = [
+    {
+      name: "Amazon",
+      description: "Millones de productos con envío rápido y garantizado",
+      url: "https://www.amazon.com.mx",
+      color: "text-[#FF9900]",
+      hoverEffect: "hover:shadow-amazon",
+      bgGradient: "from-[#FF990033] to-transparent",
+      icon: "🛍️"
+    },
+    {
+      name: "MercadoLibre",
+      description: "La mayor plataforma de comercio electrónico en México",
+      url: "https://www.mercadolibre.com.mx",
+      color: "text-[#FFE600]",
+      hoverEffect: "hover:shadow-mercadolibre",
+      bgGradient: "from-[#FFE60033] to-transparent",
+      icon: "🌟"
+    }
+  ];
+
+  useGSAP(() => {
+    // Fade in cards with stagger
+    gsap.from(".marketplace-card", {
+      opacity: 0,
+      y: 100,
+      duration: 1,
+      stagger: 0.3,
+      ease: "power3.out"
+    });
+
+    // Continuous floating animation
+    gsap.to(".marketplace-card", {
+      y: -20,
+      duration: 2.5,
+      ease: "power1.inOut",
+      yoyo: true,
+      repeat: -1,
+      stagger: {
+        each: 0.5,
+        from: "random"
+      }
+    });
+
+    // Glow effect animation
+    gsap.to(".card-glow", {
+      opacity: 0.8,
+      duration: 2,
+      ease: "power1.inOut",
+      yoyo: true,
+      repeat: -1,
+      stagger: {
+        each: 0.3,
+        from: "random"
+      }
+    });
+
+    // Background particles animation
+    const particles = bgParticlesRef.current.children;
+    gsap.to(particles, {
+      y: "random(-100, 100)",
+      x: "random(-100, 100)",
+      opacity: "random(0.3, 0.8)",
+      duration: "random(3, 5)",
+      ease: "power1.inOut",
+      stagger: {
+        each: 0.2,
+        repeat: -1,
+        yoyo: true
+      }
+    });
+  });
 
   return (
     <Section
-      className="pt-[12rem] -mt-[5.25rem]"
+      className="pt-[12rem] -mt-[5.25rem] overflow-hidden"
       crosses
       crossesOffset="lg:translate-y-[5.25rem]"
       customPaddings
       id="hero"
     >
       <div ref={parallaxRef} className="container relative">
+        {/* Background Particles */}
+        <div ref={bgParticlesRef} className="absolute inset-0 pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 opacity-30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+
         <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[4rem] md:mb-20 lg:mb-[6rem]">
           <h1 className="h1 mb-6">
-            Financia tus Sueños
-            <br />
             <Typewriter
               options={{
                 strings: [
-                  "Electrónicos",
-                  "Electrodomésticos",
-                  "Muebles",
-                  "Tecnología",
-                  "Y Más",
+                  'Financia tus sueños...',
+                  'Compra tecnología...',
+                  'Renueva tu hogar...',
+                  'Estrena muebles...',
+                  'Adquiere electrodomésticos...'
                 ],
                 autoStart: true,
                 loop: true,
+                deleteSpeed: 50,
+                delay: 80
               }}
             />
           </h1>
-
-          <p className="body-1 max-w-3xl mx-auto mb-6 text-n-2 lg:mb-8">
-            Obtén financiamiento instantáneo para productos de tus tiendas online favoritas. Solo comparte el enlace y nosotros nos encargamos del resto con{" "}
-            <span className="inline-block relative font-semibold">
-              Fincentiva
-              <img
-                src={curve}
-                className="absolute top-full left-0 w-full xl:-mt-2 pointer-events-none select-none"
-                width={624}
-                height={28}
-                alt="Curve"
-              />
-            </span>
+          <p className="body-1 max-w-3xl mx-auto mb-6 text-n-2 lg:mb-8 animate-fadeIn">
+            Obtén financiamiento al instante para tus compras en línea. 
+            Elige el plan que mejor se adapte a ti.
           </p>
-
-          <Button href="#get-started" white>
-            Comenzar Ahora
-          </Button>
         </div>
 
-        <div className="relative max-w-[23rem] mx-auto md:max-w-5xl xl:mb-24">
-          <div className="relative z-1 p-0.5 rounded-2xl bg-conic-gradient">
-            <div className="relative bg-n-8 rounded-[1rem]">
-              <div className="h-[1.4rem] bg-n-10 rounded-t-[0.9rem]" />
-
-              <div className="aspect-[33/40] rounded-b-[0.9rem] overflow-hidden md:aspect-[688/490] lg:aspect-[1024/490]">
-                {/* Product Showcase Section */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6">
-                  <div className="product-card bg-n-7 p-4 rounded-lg">
-                    <div className="text-sm font-medium mb-2">Electrónicos</div>
-                    <div className="text-xs text-n-3">Aprobación instantánea</div>
-                  </div>
-                  <div className="product-card bg-n-7 p-4 rounded-lg">
-                    <div className="text-sm font-medium mb-2">Electrodomésticos</div>
-                    <div className="text-xs text-n-3">Términos flexibles</div>
-                  </div>
-                  <div className="product-card bg-n-7 p-4 rounded-lg">
-                    <div className="text-sm font-medium mb-2">Muebles</div>
-                    <div className="text-xs text-n-3">Pagos fáciles</div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-1 mb-[4rem]">
+          {marketplaces.map((marketplace, index) => (
+            <a
+              key={index}
+              href={marketplace.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`marketplace-card group block p-8 rounded-2xl bg-gradient-to-b ${marketplace.bgGradient} backdrop-blur-sm border border-n-1/10 transition-all duration-500 ${marketplace.hoverEffect} hover:scale-105 hover:-translate-y-2 relative overflow-hidden`}
+            >
+              {/* Glow effect */}
+              <div className={`card-glow absolute inset-0 opacity-0 ${marketplace.bgGradient} blur-xl transition-opacity duration-500 group-hover:opacity-20`} />
+              
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-4xl">{marketplace.icon}</span>
+                <div className={`text-3xl font-bold ${marketplace.color} transition-colors duration-300 group-hover:scale-110 transform`}>
+                  {marketplace.name}
                 </div>
-
-                <Generating className="absolute left-4 right-4 bottom-5 md:left-1/2 md:right-auto md:bottom-8 md:w-[31rem] md:-translate-x-1/2" />
-
-                <ScrollParallax isAbsolutelyPositioned>
-                  <Notification
-                    className="hidden absolute -right-[5.5rem] bottom-[11rem] w-[18rem] xl:flex"
-                    title="Aprobación Instantánea"
-                  />
-                </ScrollParallax>
               </div>
-            </div>
+              
+              <p className="text-n-3 transition-colors duration-300 group-hover:text-n-1">
+                {marketplace.description}
+              </p>
+              
+              <div className="mt-6 flex items-center text-n-3 group-hover:text-n-1">
+                <span className="mr-2 transition-transform duration-300 group-hover:translate-x-1">
+                  Visitar tienda
+                </span>
+                <svg
+                  className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-2 arrow-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </a>
+          ))}
+        </div>
 
-            <Gradient />
-          </div>
-
-          <div className="absolute -top-[54%] left-1/2 w-[234%] -translate-x-1/2 md:-top-[46%] md:w-[138%] lg:-top-[104%]">
-            <img
-              src={heroBackground}
-              className="w-full pointer-events-none select-none"
-              width={1440}
-              height={1800}
-              alt="Hero"
-            />
-          </div>
-
-          <BackgroundCircles />
+        <div className="absolute top-[55.25rem] left-1/2 w-[92.5rem] -translate-x-1/2 pointer-events-none">
+          <img
+            src={curve}
+            className="w-full"
+            width={1480}
+            height={144}
+            alt="Curve"
+          />
         </div>
 
         <CompanyLogos className="hidden relative z-10 mt-20 lg:block" />
       </div>
-
-      <BottomLine />
     </Section>
   );
 };

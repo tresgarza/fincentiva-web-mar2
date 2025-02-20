@@ -14,13 +14,16 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
         'amazon.com',
         'amazon.com.mx',
         'mercadolibre.com.mx',
-        'mercadolibre.com'
+        'mercadolibre.com',
+        'liverpool.com.mx',
+        'walmart.com.mx',
+        'elpalaciodehierro.com'
       ];
       
       const isValidDomain = validDomains.some(domain => parsedUrl.hostname.endsWith(domain));
       
       if (!isValidDomain) {
-        setError("Por favor ingresa un enlace válido de Amazon México o MercadoLibre México");
+        setError("Por favor ingresa un enlace válido de Amazon México, MercadoLibre México, Liverpool, Walmart o El Palacio de Hierro");
         return false;
       }
       
@@ -103,9 +106,12 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
                 <p className="text-n-4 text-sm">
                   Aceptamos productos de:
                 </p>
-                <div className="flex justify-center gap-4 mt-2">
+                <div className="flex flex-wrap justify-center gap-4 mt-2">
                   <span className="text-n-3">Amazon México</span>
                   <span className="text-n-3">MercadoLibre México</span>
+                  <span className="text-n-3">Liverpool</span>
+                  <span className="text-n-3">Walmart</span>
+                  <span className="text-n-3">El Palacio de Hierro</span>
                 </div>
               </div>
             </div>
