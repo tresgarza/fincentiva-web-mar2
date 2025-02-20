@@ -1,6 +1,4 @@
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.fincentiva.com/api'
-  : 'http://localhost:3000/api';
+import { API_URL } from '../config/api';
 
 console.log('API URL:', API_URL);
 
@@ -100,7 +98,7 @@ export async function getProductInfo(url) {
     
     // Network or connection errors
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('No se pudo conectar con el servidor. Por favor, verifica que el servidor backend esté corriendo en http://localhost:3000');
+      throw new Error(`No se pudo conectar con el servidor. Por favor, verifica que el servidor backend esté disponible en ${API_URL}`);
     }
     
     // Other errors
