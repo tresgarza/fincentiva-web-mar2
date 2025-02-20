@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { ScrollParallax } from "react-just-parallax";
 import { heroIcons } from "../constants";
 import { curve } from "../assets";
@@ -11,7 +11,6 @@ import Typewriter from 'typewriter-effect';
 
 const Hero = () => {
   const parallaxRef = useRef(null);
-  const bgParticlesRef = useRef(null);
 
   const marketplaces = [
     {
@@ -19,17 +18,29 @@ const Hero = () => {
       description: "Millones de productos con envío rápido y garantizado",
       url: "https://www.amazon.com.mx",
       color: "text-[#FF9900]",
-      hoverEffect: "hover:shadow-amazon",
-      bgGradient: "from-[#FF990033] to-transparent",
       icon: "🛍️"
+    },
+    {
+      name: "Financiar Producto",
+      description: "Simula un crédito para tus compras en línea y elige el mejor plan de pagos",
+      isSimulator: true,
+      simulatorType: 'product',
+      color: "text-[#33FF57]",
+      icon: "💳"
+    },
+    {
+      name: "Solicitar Efectivo",
+      description: "Calcula tu capacidad de crédito y obtén el efectivo que necesitas",
+      isSimulator: true,
+      simulatorType: 'cash',
+      color: "text-[#33FF57]",
+      icon: "💰"
     },
     {
       name: "MercadoLibre",
       description: "La mayor plataforma de comercio electrónico en México",
       url: "https://www.mercadolibre.com.mx",
       color: "text-[#FFE600]",
-      hoverEffect: "hover:shadow-mercadolibre",
-      bgGradient: "from-[#FFE60033] to-transparent",
       icon: "🌟"
     }
   ];
@@ -38,130 +49,117 @@ const Hero = () => {
     // Fade in cards with stagger
     gsap.from(".marketplace-card", {
       opacity: 0,
-      y: 100,
+      y: 20,
       duration: 1,
       stagger: 0.3,
       ease: "power3.out"
-    });
-
-    // Continuous floating animation
-    gsap.to(".marketplace-card", {
-      y: -20,
-      duration: 2.5,
-      ease: "power1.inOut",
-      yoyo: true,
-      repeat: -1,
-      stagger: {
-        each: 0.5,
-        from: "random"
-      }
-    });
-
-    // Glow effect animation
-    gsap.to(".card-glow", {
-      opacity: 0.8,
-      duration: 2,
-      ease: "power1.inOut",
-      yoyo: true,
-      repeat: -1,
-      stagger: {
-        each: 0.3,
-        from: "random"
-      }
-    });
-
-    // Background particles animation
-    const particles = bgParticlesRef.current.children;
-    gsap.to(particles, {
-      y: "random(-100, 100)",
-      x: "random(-100, 100)",
-      opacity: "random(0.3, 0.8)",
-      duration: "random(3, 5)",
-      ease: "power1.inOut",
-      stagger: {
-        each: 0.2,
-        repeat: -1,
-        yoyo: true
-      }
     });
   });
 
   return (
     <Section
-      className="pt-[12rem] -mt-[5.25rem] overflow-hidden"
+      className="pt-[8rem] -mt-[5.25rem] overflow-hidden"
       crosses
       crossesOffset="lg:translate-y-[5.25rem]"
       customPaddings
       id="hero"
     >
       <div ref={parallaxRef} className="container relative">
-        {/* Background Particles */}
-        <div ref={bgParticlesRef} className="absolute inset-0 pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 opacity-30"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[4rem] md:mb-20 lg:mb-[6rem]">
+        <div className="relative z-1 max-w-[45rem] mx-auto text-center mb-[2rem] md:mb-8 lg:mb-[2rem]">
           <h1 className="h1 mb-6">
-            <Typewriter
-              options={{
-                strings: [
-                  'Financia tus sueños...',
-                  'Compra tecnología...',
-                  'Renueva tu hogar...',
-                  'Estrena muebles...',
-                  'Adquiere electrodomésticos...'
-                ],
-                autoStart: true,
-                loop: true,
-                deleteSpeed: 50,
-                delay: 80
-              }}
-            />
+            <div className="h-[100px] flex items-center justify-center">
+              <Typewriter
+                options={{
+                  strings: [
+                    'Simula tu crédito al instante',
+                    'Calcula tu capacidad de pago',
+                    'Financia tus compras en línea',
+                    'Obtén efectivo de inmediato',
+                    'Elige el plan que más te convenga'
+                  ],
+                  autoStart: true,
+                  loop: true,
+                  deleteSpeed: 30,
+                  delay: 100,
+                  pauseFor: 2500
+                }}
+              />
+            </div>
           </h1>
-          <p className="body-1 max-w-3xl mx-auto mb-6 text-n-2 lg:mb-8 animate-fadeIn">
-            Obtén financiamiento al instante para tus compras en línea. 
-            Elige el plan que mejor se adapte a ti.
+          <p className="body-1 max-w-2xl mx-auto mb-10 text-n-2 lg:mb-12 text-base">
+            Descubre cuánto puedes solicitar según tus ingresos y elige el plan de pagos 
+            que mejor se adapte a tu presupuesto. Sin complicaciones, 100% en línea.
           </p>
+          
+          {/* Beneficios Destacados */}
+          <div className="grid grid-cols-3 gap-4 max-w-[40rem] mx-auto">
+            <div className="flex flex-col items-center p-4 rounded-xl bg-n-7/50 backdrop-blur-sm">
+              <div className="text-[#33FF57] text-2xl mb-2">⚡️</div>
+              <h3 className="text-sm font-semibold mb-1">Respuesta Inmediata</h3>
+              <p className="text-xs text-n-3">Conoce tu capacidad de crédito al instante</p>
+            </div>
+            <div className="flex flex-col items-center p-4 rounded-xl bg-n-7/50 backdrop-blur-sm">
+              <div className="text-[#33FF57] text-2xl mb-2">🎯</div>
+              <h3 className="text-sm font-semibold mb-1">Planes Flexibles</h3>
+              <p className="text-xs text-n-3">Ajustados a tu capacidad de pago</p>
+            </div>
+            <div className="flex flex-col items-center p-4 rounded-xl bg-n-7/50 backdrop-blur-sm">
+              <div className="text-[#33FF57] text-2xl mb-2">🔒</div>
+              <h3 className="text-sm font-semibold mb-1">100% Seguro</h3>
+              <p className="text-xs text-n-3">Proceso transparente y confiable</p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-1 mb-[4rem]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10 mb-4">
           {marketplaces.map((marketplace, index) => (
             <a
               key={index}
-              href={marketplace.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`marketplace-card group block p-8 rounded-2xl bg-gradient-to-b ${marketplace.bgGradient} backdrop-blur-sm border border-n-1/10 transition-all duration-500 ${marketplace.hoverEffect} hover:scale-105 hover:-translate-y-2 relative overflow-hidden`}
+              href={marketplace.isSimulator ? "#" : marketplace.url}
+              onClick={marketplace.isSimulator ? (e) => {
+                e.preventDefault();
+                if (typeof window !== 'undefined' && window.setActiveForm) {
+                  window.setActiveForm(marketplace.simulatorType === 'product' ? 'product' : 'amount');
+                }
+              } : undefined}
+              target={marketplace.isSimulator ? undefined : "_blank"}
+              rel={marketplace.isSimulator ? undefined : "noopener noreferrer"}
+              className={`
+                marketplace-card block p-6 rounded-xl 
+                bg-n-7 border border-n-1/10 
+                transition-all duration-300 hover:scale-[1.02]
+                hover:bg-n-6 relative overflow-hidden
+                ${marketplace.isSimulator ? 'hover:border-[#33FF57]' : ''}
+                transform-gpu
+              `}
+              style={{
+                zIndex: 10,
+                opacity: 1,
+                visibility: 'visible',
+                transform: 'none'
+              }}
             >
-              {/* Glow effect */}
-              <div className={`card-glow absolute inset-0 opacity-0 ${marketplace.bgGradient} blur-xl transition-opacity duration-500 group-hover:opacity-20`} />
-              
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-4xl">{marketplace.icon}</span>
-                <div className={`text-3xl font-bold ${marketplace.color} transition-colors duration-300 group-hover:scale-110 transform`}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">{marketplace.icon}</span>
+                <div className={`text-2xl font-bold ${marketplace.color} transition-colors duration-300`}>
                   {marketplace.name}
                 </div>
               </div>
               
-              <p className="text-n-3 transition-colors duration-300 group-hover:text-n-1">
+              <p className="text-n-3 text-sm transition-colors duration-300 group-hover:text-n-1 mb-4">
                 {marketplace.description}
               </p>
               
-              <div className="mt-6 flex items-center text-n-3 group-hover:text-n-1">
+              <div className="mt-auto flex items-center text-n-3 text-sm group-hover:text-n-1">
                 <span className="mr-2 transition-transform duration-300 group-hover:translate-x-1">
-                  Visitar tienda
+                  {marketplace.isSimulator ? 
+                    (marketplace.simulatorType === 'product' ? 
+                      "Financiar un producto" : 
+                      "Solicitar efectivo") :
+                    "Explorar productos financiables"}
                 </span>
                 <svg
-                  className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-2 arrow-icon"
+                  className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -177,18 +175,6 @@ const Hero = () => {
             </a>
           ))}
         </div>
-
-        <div className="absolute top-[55.25rem] left-1/2 w-[92.5rem] -translate-x-1/2 pointer-events-none">
-          <img
-            src={curve}
-            className="w-full"
-            width={1480}
-            height={144}
-            alt="Curve"
-          />
-        </div>
-
-        <CompanyLogos className="hidden relative z-10 mt-20 lg:block" />
       </div>
     </Section>
   );

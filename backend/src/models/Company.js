@@ -93,7 +93,16 @@ export class Company {
 
     // Helper function to compute CAT from periodic IRR
     const computeCAT = (tirPorPeriodo, periodosPorAño) => {
-      return redondear((Math.pow(1 + tirPorPeriodo, periodosPorAño) - 1) * 100);
+      // La fórmula del CAT es: CAT = ((1 + TIR)^n - 1) * 100
+      // donde n es el número de períodos en un año (12 para pagos mensuales)
+      // y TIR es la tasa interna de retorno por período que YA incluye IVA
+      // porque los flujos de efectivo (pagos mensuales) ya tienen el IVA incluido
+      
+      // Calculamos la tasa efectiva anual
+      const tasaEfectiva = Math.pow(1 + tirPorPeriodo, periodosPorAño) - 1;
+      
+      // Convertimos a porcentaje y redondeamos a 2 decimales
+      return redondear(tasaEfectiva * 100);
     };
 
     // Helper function to calculate final balance for a given payment amount
@@ -159,7 +168,7 @@ export class Company {
 
     // Calculate payments for each period option
     const payments = periods.map(totalPeriods => {
-      // Calculate periodic rate
+      // Calculate periodic rate (monthly rate = annual rate / 12)
       const periodicRate = interest_rate / 100 / paymentsPerYear;
       
       // Find the fixed payment that results in zero balance
@@ -174,11 +183,18 @@ export class Company {
       );
 
       // Calculate CAT using IRR method
+      // El flujo inicial es negativo (el préstamo)
       const flows = [-amount];
+      // Los pagos mensuales son positivos y ya incluyen capital + intereses + IVA
       for (let i = 0; i < totalPeriods; i++) {
         flows.push(fixedPayment);
       }
+      
+      // Calculamos la TIR mensual usando el método de Newton-Raphson
       const tirPeriodica = irr(flows);
+      
+      // Calculamos el CAT usando la TIR mensual
+      // No multiplicamos por 1.16 porque los flujos ya incluyen IVA
       const cat = computeCAT(tirPeriodica, paymentsPerYear);
 
       return {

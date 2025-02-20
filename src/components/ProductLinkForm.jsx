@@ -15,15 +15,13 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
         'amazon.com.mx',
         'mercadolibre.com.mx',
         'mercadolibre.com',
-        'liverpool.com.mx',
-        'walmart.com.mx',
-        'elpalaciodehierro.com'
+        
       ];
       
       const isValidDomain = validDomains.some(domain => parsedUrl.hostname.endsWith(domain));
       
       if (!isValidDomain) {
-        setError("Por favor ingresa un enlace válido de Amazon México, MercadoLibre México, Liverpool, Walmart o El Palacio de Hierro");
+        setError("Por favor ingresa un enlace válido de Amazon México o MercadoLibre México");
         return false;
       }
       
@@ -36,21 +34,15 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    
-    if (!validateLink(productLink)) {
-      return;
-    }
+    if (isSubmitting || isLoading) return;
 
     setIsSubmitting(true);
-    
+    setError("");
+
     try {
-      console.log('Submitting product link:', productLink);
       await onSubmit(productLink);
-      setProductLink("");
     } catch (err) {
-      console.error('Error in form submission:', err);
-      setError(err.message || "Hubo un error al procesar el enlace. Por favor intenta de nuevo.");
+      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -60,8 +52,19 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
     <Section id="get-started" className="py-10">
       <div className="container">
         <div className="max-w-[40rem] mx-auto">
-          <div className="relative z-1 p-0.5 rounded-2xl bg-conic-gradient">
-            <div className="relative bg-n-8 rounded-[1rem] p-8">
+          <div className="relative p-0.5 rounded-2xl bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden">
+            {/* Animated light effect */}
+            <div className="absolute inset-0">
+              <div className="absolute inset-0" 
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                  transform: 'translateX(-100%)',
+                  animation: 'gradient-slide 3s linear infinite'
+                }}
+              />
+            </div>
+
+            <div className="relative bg-[#0D1117] rounded-2xl p-8">
               <h3 className="h3 mb-4 text-center">Comienza tu Compra</h3>
               <p className="body-2 text-n-4 mb-8 text-center">
                 Pega el enlace del producto que deseas y nosotros nos encargamos del resto
@@ -78,12 +81,10 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
                     value={productLink}
                     onChange={(e) => {
                       setProductLink(e.target.value);
-                      setError(""); // Clear error when user types
+                      setError("");
                     }}
                     placeholder="https://www.amazon.com.mx/producto..."
-                    className={`w-full px-4 py-3 rounded-lg bg-n-7 text-n-1 placeholder-n-4 border ${
-                      error ? 'border-red-500' : 'border-n-6'
-                    } focus:outline-none focus:border-n-3`}
+                    className="w-full px-4 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors"
                     required
                     disabled={isSubmitting}
                   />
@@ -92,32 +93,49 @@ const ProductLinkForm = ({ onSubmit, isLoading }) => {
                   )}
                 </div>
 
+                <div className="text-center text-sm text-gray-400 mb-4">
+                  Aceptamos productos de:
+                  <div className="flex justify-center items-center gap-4 mt-2">
+                    <span>Amazon</span>
+                    <span>y</span>
+                    <span>MercadoLibre</span>
+                    
+                  </div>
+                  <div className="mt-1">
+                   
+                  </div>
+                </div>
+
                 <Button
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-[#40E0D0] to-[#3FD494] hover:from-[#3FD494] hover:to-[#40E0D0] text-black font-semibold py-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02]"
                   type="submit"
                   disabled={isSubmitting || isLoading}
-                  white={!isSubmitting && !isLoading}
                 >
-                  {isSubmitting || isLoading ? "Procesando..." : "Ver Opciones de Financiamiento"}
+                  {isSubmitting || isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Procesando...
+                    </div>
+                  ) : (
+                    "VER OPCIONES DE FINANCIAMIENTO"
+                  )}
                 </Button>
               </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-n-4 text-sm">
-                  Aceptamos productos de:
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 mt-2">
-                  <span className="text-n-3">Amazon México</span>
-                  <span className="text-n-3">MercadoLibre México</span>
-                  <span className="text-n-3">Liverpool</span>
-                  <span className="text-n-3">Walmart</span>
-                  <span className="text-n-3">El Palacio de Hierro</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes gradient-slide {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
     </Section>
   );
 };
