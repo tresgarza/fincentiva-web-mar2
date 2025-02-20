@@ -75,45 +75,43 @@ const FinancingOptions = ({ product, company, onSelectPlan }) => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-n-8 px-4 py-8">
-      {/* Product Info Section */}
-      <div className="mb-16">
-        <div className="bg-n-7 rounded-2xl p-8 lg:p-12 w-full max-w-[1400px] mx-auto">
-          <div className="flex flex-col lg:flex-row gap-12">
-            <div className="w-full lg:w-1/3 xl:w-1/4">
-              <div className="aspect-square rounded-xl overflow-hidden bg-n-6">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+    <div className="w-full bg-n-8 px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-[1400px] mx-auto">
+        {/* Product Info Column */}
+        <div className="bg-n-7 rounded-2xl p-8 lg:p-12">
+          <div className="flex flex-col gap-8">
+            <div className="aspect-square w-full max-w-[300px] mx-auto rounded-xl overflow-hidden bg-n-6">
+              <img
+                src={product.image}
+                alt={product.title}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div className="flex-grow">
-              <h2 className="text-4xl font-bold text-n-1 mb-6">{product.title}</h2>
-              <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-5xl font-bold text-primary-500">
+            <div>
+              <h2 className="text-3xl font-bold text-n-1 mb-4">{product.title}</h2>
+              <div className="flex items-baseline gap-4 mb-6">
+                <span className="text-4xl font-bold text-primary-500">
                   {formatCurrency(product.price)}
                 </span>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 {product.rating && (
-                  <div className="text-n-3 text-xl">
+                  <div className="text-n-3 text-lg">
                     <span className="font-medium text-n-1">Calificación:</span> {product.rating}
                   </div>
                 )}
                 {product.availability && (
-                  <div className="text-n-3 text-xl">
+                  <div className="text-n-3 text-lg">
                     <span className="font-medium text-n-1">Disponibilidad:</span> {product.availability}
                   </div>
                 )}
               </div>
               {product.features && product.features.length > 0 && (
                 <div className="text-n-3">
-                  <h3 className="text-2xl font-semibold text-n-1 mb-4">Características</h3>
-                  <ul className="list-disc list-inside space-y-3">
+                  <h3 className="text-xl font-semibold text-n-1 mb-3">Características</h3>
+                  <ul className="list-disc list-inside space-y-2">
                     {product.features.map((feature, index) => (
-                      <li key={index} className="text-xl">{feature}</li>
+                      <li key={index} className="text-lg">{feature}</li>
                     ))}
                   </ul>
                 </div>
@@ -121,98 +119,94 @@ const FinancingOptions = ({ product, company, onSelectPlan }) => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Financing Options Section */}
-      <div className="w-full max-w-[1400px] mx-auto">
-        <h2 className="text-4xl font-bold text-center text-n-1 mb-12">Elige tu Plan de Financiamiento</h2>
-        
-        {/* Financing Table */}
-        <div className="bg-n-7 rounded-2xl p-8 lg:p-12 mb-12">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-n-6">
-                  <th className="text-left py-6 px-6 text-xl text-n-3 font-semibold">Plazo</th>
-                  <th className="text-right py-6 px-6 text-xl text-n-3 font-semibold">Pago por periodo</th>
-                  <th className="text-right py-6 px-6 text-xl text-n-3 font-semibold">Total a pagar</th>
-                  <th className="text-right py-6 px-6 text-xl text-n-3 font-semibold">Tasa de interés</th>
-                  <th className="text-right py-6 px-6 text-xl text-n-3 font-semibold">CAT</th>
-                  <th className="py-6 px-6"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentOptions.map((option, index) => (
-                  <tr 
-                    key={option.periods}
-                    className={`border-b border-n-6 hover:bg-n-6 transition-colors ${
-                      selectedPlan === option ? 'bg-n-6' : ''
-                    }`}
-                  >
-                    <td className="py-8 px-6">
-                      <div className="flex items-center gap-3">
-                        {index === 0 && (
-                          <span className="inline-block bg-primary-500 text-n-1 text-sm px-3 py-1 rounded-full">
-                            Recomendado
-                          </span>
-                        )}
-                        <span className="text-xl text-n-1 font-medium">
-                          {option.periods} {option.periodLabel}
+        {/* Financing Options Column */}
+        <div>
+          <h2 className="text-3xl font-bold text-center text-n-1 mb-8">Elige tu Plan de Financiamiento</h2>
+          <div className="flex flex-col gap-4">
+            {paymentOptions.map((option, index) => {
+              const isSelected = selectedPlan === option;
+              
+              return (
+                <div
+                  key={option.periods}
+                  onClick={() => setSelectedPlan(option)}
+                  className={`
+                    relative bg-n-7 rounded-2xl p-6 cursor-pointer
+                    transition-all duration-300 ease-in-out
+                    ${isSelected 
+                      ? 'ring-2 ring-primary-500 shadow-lg shadow-primary-500/20 scale-[1.02]' 
+                      : 'hover:scale-[1.01] hover:shadow-lg hover:shadow-n-1/5'}
+                  `}
+                >
+                  {/* Recommended Badge */}
+                  {index === 0 && (
+                    <span className="absolute -top-3 left-6 inline-block bg-primary-500 text-n-1 text-sm px-4 py-1 rounded-full shadow-lg">
+                      Recomendado
+                    </span>
+                  )}
+
+                  <div className="flex flex-col gap-4">
+                    {/* Period and Payment */}
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-2xl font-bold text-n-1">
+                        {option.periods} {option.periodLabel}
+                      </h3>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-primary-500">
+                          {formatCurrency(option.paymentPerPeriod)}
+                        </span>
+                        <span className="text-sm text-n-3 ml-1">
+                          /{getPeriodShortLabel(option.periodLabel)}
                         </span>
                       </div>
-                    </td>
-                    <td className="py-8 px-6 text-right">
-                      <span className="text-2xl font-bold text-primary-500">
-                        {formatCurrency(option.paymentPerPeriod)}
-                      </span>
-                      <span className="text-base text-n-3 ml-1">
-                        /{getPeriodShortLabel(option.periodLabel)}
-                      </span>
-                    </td>
-                    <td className="py-8 px-6 text-right">
-                      <span className="text-xl font-medium text-n-1">
-                        {formatCurrency(option.totalPayment)}
-                      </span>
-                    </td>
-                    <td className="py-8 px-6 text-right">
-                      <span className="text-xl font-medium text-n-1">
-                        {option.interestRate}% anual
-                      </span>
-                    </td>
-                    <td className="py-8 px-6 text-right">
-                      <span className="text-xl font-medium text-n-1">
-                        {option.cat}% anual
-                      </span>
-                    </td>
-                    <td className="py-8 px-6">
-                      <button
-                        onClick={() => setSelectedPlan(option)}
-                        className={`w-full px-6 py-3 rounded-xl text-lg font-medium transition-colors ${
-                          selectedPlan === option
-                            ? 'bg-primary-500 text-n-1'
-                            : 'bg-n-5 text-n-3 hover:bg-n-4 hover:text-n-1'
-                        }`}
-                      >
-                        Seleccionar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    </div>
 
-        {/* Action Button */}
-        <div className="text-center">
-          <Button
-            className="px-12 py-5 text-xl"
-            disabled={!selectedPlan}
-            onClick={() => onSelectPlan && onSelectPlan(selectedPlan)}
-            white
-          >
-            {selectedPlan ? 'Continuar con el Plan Seleccionado' : 'Selecciona un Plan'}
-          </Button>
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-4 text-n-3">
+                      <div>
+                        <span className="text-sm">Total a pagar</span>
+                        <p className="text-lg font-medium text-n-1">
+                          {formatCurrency(option.totalPayment)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm">Tasa de interés</span>
+                        <p className="text-lg font-medium text-n-1">
+                          {option.interestRate}% anual
+                        </p>
+                      </div>
+                      <div className="col-span-2 text-center">
+                        <span className="text-sm">CAT</span>
+                        <p className="text-lg font-medium text-n-1">
+                          {option.cat}% anual
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Selection Indicator */}
+                    <div className={`
+                      h-1.5 w-full rounded-full mt-2
+                      transition-all duration-300 ease-in-out
+                      ${isSelected ? 'bg-primary-500' : 'bg-n-6'}
+                    `} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Action Button */}
+          <div className="text-center mt-8">
+            <Button
+              className="px-12 py-4 text-lg w-full sm:w-auto"
+              disabled={!selectedPlan}
+              onClick={() => onSelectPlan && onSelectPlan(selectedPlan)}
+              white
+            >
+              {selectedPlan ? 'Continuar con el Plan Seleccionado' : 'Selecciona un Plan'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
