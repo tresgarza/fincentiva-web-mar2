@@ -1,5 +1,5 @@
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://fincentiva-empresas-802ioi3bg-diegoagarza98s-projects.vercel.app/api'
+  ? 'https://fincentiva-empresas-backend.vercel.app/api'
   : '/api';
 
 console.log('API URL:', API_URL);
