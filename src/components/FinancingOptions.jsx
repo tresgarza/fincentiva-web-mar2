@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { Gradient } from "./design/Hero";
+import { API_URL } from '../config/api';
 
 const FinancingOptions = ({ product, company, onSelectPlan }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
@@ -11,7 +12,7 @@ const FinancingOptions = ({ product, company, onSelectPlan }) => {
   useEffect(() => {
     const calculatePayments = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/companies/calculate-payments`, {
+        const response = await fetch(`${API_URL}/companies/calculate-payments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -19,7 +20,7 @@ const FinancingOptions = ({ product, company, onSelectPlan }) => {
           body: JSON.stringify({
             companyId: company.id,
             amount: product.price
-          }),
+          })
         });
 
         if (!response.ok) {
@@ -29,17 +30,15 @@ const FinancingOptions = ({ product, company, onSelectPlan }) => {
         const data = await response.json();
         setPaymentOptions(data);
       } catch (err) {
-        setError('Error al calcular las opciones de pago');
         console.error('Error:', err);
+        setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (product?.price && company?.id) {
-      calculatePayments();
-    }
-  }, [product?.price, company?.id]);
+    calculatePayments();
+  }, [product, company]);
 
   if (isLoading) {
     return (

@@ -9,6 +9,7 @@ import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -150,4 +151,20 @@ const App = () => {
   );
 };
 
-export default App;
+// Create router configuration
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+  }
+], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+});
+
+// Export the RouterProvider component with our router configuration
+export default function AppWrapper() {
+  return <RouterProvider router={router} />;
+}

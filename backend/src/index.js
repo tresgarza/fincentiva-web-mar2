@@ -13,9 +13,12 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: process.env.NODE_ENV === 'development' 
+    ? true // Allow all origins in development
+    : process.env.CORS_ORIGIN || 'https://financiera-incentiva-0220.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
 app.use(helmet());
