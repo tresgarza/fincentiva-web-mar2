@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Button from "./Button";
 import { API_URL } from '../config/api';
 
-const FinancingOptions = ({ product, company, onSelectPlan, onBack }) => {
+const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) => {
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,28 +27,40 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack }) => {
     // Convertir el pago del plan al periodo de la empresa
     let adjustedPayment = paymentPerPeriod;
 
-    // Primero convertimos el pago del plan a mensual
-    if (planPeriod === 'semanas') {
-      adjustedPayment = paymentPerPeriod * 4; // Convertir a mensual
-    } else if (planPeriod === 'quincenas') {
-      adjustedPayment = paymentPerPeriod * 2; // Convertir a mensual
-    }
-
-    // Luego convertimos de mensual al periodo de la empresa
+    // Convertir el pago del plan al periodo de la empresa
     if (companyPeriod === 'weekly') {
-      adjustedPayment = adjustedPayment / 4; // De mensual a semanal
+      if (planPeriod === 'quincenas') {
+        adjustedPayment = paymentPerPeriod / 2; // De quincenal a semanal
+      } else if (planPeriod === 'meses') {
+        adjustedPayment = paymentPerPeriod / 4; // De mensual a semanal
+      }
     } else if (companyPeriod === 'biweekly') {
-      adjustedPayment = adjustedPayment / 2; // De mensual a quincenal
+      if (planPeriod === 'semanas') {
+        adjustedPayment = paymentPerPeriod * 2; // De semanal a quincenal
+      } else if (planPeriod === 'meses') {
+        adjustedPayment = paymentPerPeriod / 2; // De mensual a quincenal
+      }
+    } else { // monthly
+      if (planPeriod === 'semanas') {
+        adjustedPayment = paymentPerPeriod * 4; // De semanal a mensual
+      } else if (planPeriod === 'quincenas') {
+        adjustedPayment = paymentPerPeriod * 2; // De quincenal a mensual
+      }
     }
 
     // Comparamos el pago ajustado con el máximo permitido para el periodo de la empresa
     // Agregamos un margen de tolerancia del 1% para evitar problemas de redondeo
     const exceeds = adjustedPayment > (maxPaymentPerPeriod * 1.01);
     
-    console.log(`Plan: ${paymentPerPeriod} por ${periodLabel}`);
-    console.log(`Ajustado al periodo de la empresa (${companyPeriod}): ${adjustedPayment}`);
-    console.log(`Máximo permitido por periodo: ${maxPaymentPerPeriod}`);
-    console.log(`Excede: ${exceeds}`);
+    console.log('Debugging payment capacity:', {
+      paymentPerPeriod,
+      periodLabel,
+      companyPeriod,
+      adjustedPayment,
+      maxPaymentPerPeriod,
+      income: company.monthly_income,
+      exceeds
+    });
     
     return exceeds;
   };
@@ -63,7 +75,8 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack }) => {
           },
           body: JSON.stringify({
             companyId: company.id,
-            amount: product.price
+            amount: product.price,
+            monthlyIncome: company.monthly_income // Asegurarnos de enviar el ingreso
           })
         });
 
@@ -73,16 +86,20 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack }) => {
 
         const data = await response.json();
         setPaymentOptions(data);
+        // Llamamos a onLoaded cuando los planes estén listos
+        onLoaded?.();
       } catch (err) {
         console.error('Error:', err);
         setError(err.message);
+        // También llamamos a onLoaded en caso de error
+        onLoaded?.();
       } finally {
         setIsLoading(false);
       }
     };
 
     calculatePayments();
-  }, [product, company]);
+  }, [product, company, onLoaded]);
 
   if (isLoading) {
     return (
@@ -365,23 +382,18 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                 </Button>
                 <Button
                   className={`
-                    relative px-3 py-1 text-xs font-medium
-                    overflow-hidden group
-                    ${!selectedPlan 
-                      ? 'bg-n-6 text-n-3 cursor-not-allowed'
-                      : 'bg-n-7 text-[#40E0D0] border border-[#40E0D0] hover:bg-[#40E0D0]/10 transition-all duration-300'
-                    }
-                    rounded-md
+                    px-3 py-1 text-xs bg-n-7 hover:bg-n-6 transition-colors
+                    ${!selectedPlan ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                   disabled={!selectedPlan}
                   onClick={handlePlanSelection}
                 >
-                  <span className="relative z-10 flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
+                  <span className="flex items-center gap-1.5">
                     {selectedPlan ? (
                       <>
-                        <span>Continuar con Plan Seleccionado</span>
+                        Continuar con Plan Seleccionado
                         <svg 
-                          className="w-2 h-2 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" 
+                          className="w-4 h-4" 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
@@ -398,7 +410,6 @@ Me gustaría recibir más información sobre el proceso de solicitud.
                       'Selecciona un Plan'
                     )}
                   </span>
-                  <div className="absolute inset-0 rounded-md transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(64,224,208,0.3)]"></div>
                 </Button>
               </div>
             </div>
