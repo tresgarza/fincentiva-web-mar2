@@ -18,12 +18,5 @@
         "Access-Control-Allow-Credentials": "true"
       }
     }
-  ],
-  "regions": ["cdg1"],
-  "functions": {
-    "src/index.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  ]
 } 
