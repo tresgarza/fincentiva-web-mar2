@@ -15,17 +15,5 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
       ]
     }
-  ],
-  "env": {
-    "VITE_API_URL": "https://financiera-incentiva-backend-0220.vercel.app/api",
-    "VITE_SUPABASE_URL": "https://ydnygntfkrleiseuciwq.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
-  },
-  "build": {
-    "env": {
-      "VITE_API_URL": "https://financiera-incentiva-backend-0220.vercel.app/api",
-      "VITE_SUPABASE_URL": "https://ydnygntfkrleiseuciwq.supabase.co",
-      "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
-    }
-  }
+  ]
 } 
