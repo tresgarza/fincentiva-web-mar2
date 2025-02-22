@@ -266,61 +266,8 @@ const App = () => {
               </div>
             </div>
 
-            {/* Sección de Logos de Empresas */}
-            <div className="mt-20 text-center">
-              <h4 className="text-n-3 mb-8">Empresas que confían en nosotros</h4>
-              <div className="relative overflow-hidden">
-                <div className="flex animate-scroll-logos gap-8 items-center">
-                  {[
-                    { src: logoCartotec, alt: "Cartotec" },
-                    { src: logoCadtoner, alt: "Cadtoner" },
-                    { src: logoEtimex, alt: "Etimex" },
-                    { src: logoFortezza, alt: "Fortezza" },
-                    { src: logoPlastypel, alt: "Plastypel" },
-                    { src: logoUnoretail, alt: "Unoretail" },
-                    { src: logoMatamoros, alt: "Matamoros" },
-                    { src: logoLogistorage, alt: "Logistorage" },
-                    { src: logoMulligans, alt: "Mulligans" },
-                    { src: logoVallealto, alt: "Valle Alto" }
-                  ].map((logo, index) => (
-                    <div 
-                      key={index}
-                      className="flex-none bg-white/50 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors"
-                    >
-                      <img
-                        src={logo.src}
-                        alt={logo.alt}
-                        className="h-24 w-auto object-contain"
-                      />
-                    </div>
-                  ))}
-                  {/* Duplicamos los logos para el efecto infinito */}
-                  {[
-                    { src: logoCartotec, alt: "Cartotec" },
-                    { src: logoCadtoner, alt: "Cadtoner" },
-                    { src: logoEtimex, alt: "Etimex" },
-                    { src: logoFortezza, alt: "Fortezza" },
-                    { src: logoPlastypel, alt: "Plastypel" },
-                    { src: logoUnoretail, alt: "Unoretail" },
-                    { src: logoMatamoros, alt: "Matamoros" },
-                    { src: logoLogistorage, alt: "Logistorage" },
-                    { src: logoMulligans, alt: "Mulligans" },
-                    { src: logoVallealto, alt: "Valle Alto" }
-                  ].map((logo, index) => (
-                    <div 
-                      key={`duplicate-${index}`}
-                      className="flex-none bg-white/50 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors"
-                    >
-                      <img
-                        src={logo.src}
-                        alt={logo.alt}
-                        className="h-24 w-auto object-contain"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            {/* Espacio para separación */}
+            <div className="mt-20"></div>
           </div>
         </div>
         <ButtonGradient />

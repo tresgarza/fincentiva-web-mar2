@@ -314,7 +314,6 @@ const Hero = () => {
           <h3 className="text-center text-2xl font-bold mb-8">Confían en nosotros</h3>
           <div className="marquee overflow-hidden relative hover:cursor-pointer">
             <div className="track flex flex-nowrap w-[200%] animate-scroll-logos">
-              {/* Primera mitad */}
               {[
                 { src: logoCartotec, alt: "Cartotec" },
                 { src: logoCadtoner, alt: "Cadtoner" },

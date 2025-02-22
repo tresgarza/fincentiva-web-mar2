@@ -1,0 +1,21 @@
+<invoke name="run_terminal_cmd">
+<parameter name="command">cd backend && npm install</parameter>
+<parameter name="explanation">Instalar las dependencias necesarias para el backend</parameter>
+<parameter name="is_background">false</parameter>
+<parameter name="require_user_approval">true</parameter>
+</invoke>
+
+<invoke name="read_file">
+<parameter name="relative_workspace_path">backend/src/config/supabase.js</parameter>
+<parameter name="should_read_entire_file">true</parameter>
+<parameter name="start_line_one_indexed">1</parameter>
+<parameter name="end_line_one_indexed">20</parameter>
+<parameter name="explanation">Verificar la configuración de Supabase</parameter>
+</invoke>
+
+<invoke name="run_terminal_cmd">
+<parameter name="command">cd backend && npx nodemon src/index.js</parameter>
+<parameter name="explanation">Iniciar el servidor backend con nodemon para ver los logs de error</parameter>
+<parameter name="is_background">true</parameter>
+<parameter name="require_user_approval">true</parameter>
+</invoke> 

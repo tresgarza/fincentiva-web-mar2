@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
-import CompanyLogos from './CompanyLogos';
 import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
@@ -175,9 +174,6 @@ const CompanyAuth = ({ onAuthenticated }) => {
           Acceso seguro con encriptación de extremo a extremo
         </p>
       </div>
-
-      {/* Sección de Logos */}
-      <CompanyLogos className="mt-12" />
     </div>
   );
 };
