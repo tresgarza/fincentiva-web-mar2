@@ -12,6 +12,16 @@ import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import logoCartotec from './assets/logos/logo_empresa_cartotec.png';
+import logoCadtoner from './assets/logos/Logo_empresa_cadtoner.png';
+import logoEtimex from './assets/logos/logo_empresa_etimex.png';
+import logoFortezza from './assets/logos/logo_empresa_fortezza.png';
+import logoPlastypel from './assets/logos/logo_empresa_plastypel.png';
+import logoUnoretail from './assets/logos/logo_empresa_unoretail.png';
+import logoMatamoros from './assets/logos/logo_empresa_matamoros.png';
+import logoLogistorage from './assets/logos/logo_empresa_logistorage.png';
+import logoMulligans from './assets/logos/logo_empresa_mulligans.png';
+import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -262,48 +272,48 @@ const App = () => {
               <div className="relative overflow-hidden">
                 <div className="flex animate-scroll-logos gap-8 items-center">
                   {[
-                    'cadtoner',
-                    'etimex',
-                    'fortezza',
-                    'plastypel',
-                    'unoretail',
-                    'matamoros',
-                    'logistorage',
-                    'mulligans',
-                    'vallealto',
-                    'cartotec'
-                  ].map((empresa, index) => (
+                    { src: logoCartotec, alt: "Cartotec" },
+                    { src: logoCadtoner, alt: "Cadtoner" },
+                    { src: logoEtimex, alt: "Etimex" },
+                    { src: logoFortezza, alt: "Fortezza" },
+                    { src: logoPlastypel, alt: "Plastypel" },
+                    { src: logoUnoretail, alt: "Unoretail" },
+                    { src: logoMatamoros, alt: "Matamoros" },
+                    { src: logoLogistorage, alt: "Logistorage" },
+                    { src: logoMulligans, alt: "Mulligans" },
+                    { src: logoVallealto, alt: "Valle Alto" }
+                  ].map((logo, index) => (
                     <div 
                       key={index}
                       className="flex-none bg-white/50 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors"
                     >
                       <img
-                        src={`/src/assets/logos/logo_empresa_${empresa}.png`}
-                        alt={`Logo ${empresa}`}
+                        src={logo.src}
+                        alt={logo.alt}
                         className="h-24 w-auto object-contain"
                       />
                     </div>
                   ))}
                   {/* Duplicamos los logos para el efecto infinito */}
                   {[
-                    'cadtoner',
-                    'etimex',
-                    'fortezza',
-                    'plastypel',
-                    'unoretail',
-                    'matamoros',
-                    'logistorage',
-                    'mulligans',
-                    'vallealto',
-                    'cartotec'
-                  ].map((empresa, index) => (
+                    { src: logoCartotec, alt: "Cartotec" },
+                    { src: logoCadtoner, alt: "Cadtoner" },
+                    { src: logoEtimex, alt: "Etimex" },
+                    { src: logoFortezza, alt: "Fortezza" },
+                    { src: logoPlastypel, alt: "Plastypel" },
+                    { src: logoUnoretail, alt: "Unoretail" },
+                    { src: logoMatamoros, alt: "Matamoros" },
+                    { src: logoLogistorage, alt: "Logistorage" },
+                    { src: logoMulligans, alt: "Mulligans" },
+                    { src: logoVallealto, alt: "Valle Alto" }
+                  ].map((logo, index) => (
                     <div 
                       key={`duplicate-${index}`}
                       className="flex-none bg-white/50 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors"
                     >
                       <img
-                        src={`/src/assets/logos/logo_empresa_${empresa}.png`}
-                        alt={`Logo ${empresa}`}
+                        src={logo.src}
+                        alt={logo.alt}
                         className="h-24 w-auto object-contain"
                       />
                     </div>
