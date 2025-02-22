@@ -18,10 +18,19 @@ app.use(helmet({
 }));
 
 // Configuración de CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://fincentiva-feb21-2025.vercel.app'
+];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'development' 
-    ? true 
-    : [process.env.CORS_ORIGIN || 'https://fincentiva-feb21-2025.vercel.app'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
