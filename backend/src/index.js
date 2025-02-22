@@ -20,7 +20,8 @@ app.use(helmet({
 // Configuración de CORS
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://fincentiva-feb21-2025.vercel.app'
+  'https://fincentiva-feb21-2025.vercel.app',
+  'https://fincentiva-feb21-2025-front.vercel.app'
 ];
 
 const corsOptions = {
