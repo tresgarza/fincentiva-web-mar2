@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || (
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3001/api'
-    : 'https://fincentiva-backend-feb21-2025.vercel.app/api'
+    : 'https://fincentiva-feb21-2025-backend.vercel.app/api'
 );
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
