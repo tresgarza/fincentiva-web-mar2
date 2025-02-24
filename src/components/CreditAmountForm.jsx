@@ -136,16 +136,16 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
 
   return (
     <Section id="credit-amount" className={showLoader ? 'hidden' : 'block'}>
-      <div className="container">
-        <div className="flex gap-8 items-stretch justify-center">
-          {/* Guía Visual Animada (Izquierda) */}
+      <div className="container px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch justify-center">
+          {/* Guía Visual Animada (Izquierda) - Se apila en móvil */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-[300px] flex flex-col gap-6"
+            className="w-full lg:w-[300px] flex flex-col gap-6"
           >
-            <div className="flex-1 bg-n-8/50 rounded-xl p-6 border border-n-6">
+            <div className="flex-1 bg-n-8/50 rounded-xl p-4 lg:p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">Guía Rápida</h4>
               <div className="space-y-4">
                 <motion.div 
@@ -195,7 +195,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
               </div>
             </div>
 
-            <div className="flex-1 bg-n-8/50 rounded-xl p-6 border border-n-6">
+            <div className="flex-1 bg-n-8/50 rounded-xl p-4 lg:p-6 border border-n-6">
               <h4 className="text-lg font-semibold mb-4 text-[#33FF57]">¿Sabías que?</h4>
               <div className="space-y-3 text-sm text-n-3">
                 <p>• El monto máximo depende de tus ingresos y capacidad de pago</p>
@@ -206,8 +206,8 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
             </div>
           </motion.div>
 
-          {/* Formulario Principal */}
-          <div className="w-[40rem]">
+          {/* Formulario Principal - Ocupa todo el ancho en móvil */}
+          <div className="w-full lg:w-[40rem]">
             <div className="relative p-0.5 rounded-2xl bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden h-full">
               <div className="absolute inset-0">
                 <div className="absolute inset-0" 
@@ -219,16 +219,16 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                 />
               </div>
 
-              <div className="relative bg-[#0D1117] rounded-2xl p-8 h-full flex flex-col">
+              <div className="relative bg-[#0D1117] rounded-2xl p-4 sm:p-6 lg:p-8 h-full flex flex-col">
                 <div className="flex items-center justify-center mb-6">
                   <div className="relative">
-                    <FaMoneyBillWave className="text-[#40E0D0] text-4xl animate-pulse" />
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#33FF57] rounded-full animate-ping" />
+                    <FaMoneyBillWave className="text-[#40E0D0] text-3xl lg:text-4xl animate-pulse" />
+                    <div className="absolute -top-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-[#33FF57] rounded-full animate-ping" />
                   </div>
                 </div>
                 
-                <h3 className="h3 mb-4 text-center">Solicita tu Crédito</h3>
-                <p className="body-2 text-n-4 mb-8 text-center">
+                <h3 className="text-2xl lg:text-3xl font-bold mb-4 text-center">Solicita tu Crédito</h3>
+                <p className="text-sm lg:text-base text-n-4 mb-6 lg:mb-8 text-center">
                   Ingresa tus datos para calcular tu capacidad de crédito
                 </p>
                 
@@ -239,7 +239,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                       ¿Cuánto ganas por {getPaymentFrequencyLabel()}?
                     </label>
                     <div className="relative group">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-n-4">
+                      <span className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 text-n-4">
                         $
                       </span>
                       <input
@@ -248,10 +248,10 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                         value={income}
                         onChange={(e) => handleNumberInput(e, setIncome)}
                         placeholder="0"
-                        className="w-full px-12 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-20"
+                        className="w-full px-8 lg:px-12 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-16 lg:pr-20 text-sm lg:text-base"
                         required
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-n-4 ml-2">
+                      <span className="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-n-4 text-sm lg:text-base">
                         MXN
                       </span>
                     </div>
@@ -263,7 +263,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                       Monto Solicitado
                     </label>
                     <div className="relative group">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-n-4">
+                      <span className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 text-n-4">
                         $
                       </span>
                       <input
@@ -272,11 +272,11 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                         value={amount}
                         onChange={(e) => handleNumberInput(e, setAmount)}
                         placeholder="0"
-                        className="w-full px-12 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-20"
+                        className="w-full px-8 lg:px-12 py-3 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-16 lg:pr-20 text-sm lg:text-base"
                         required
                         disabled={!income}
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-n-4 ml-2">
+                      <span className="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-n-4 text-sm lg:text-base">
                         MXN
                       </span>
                     </div>
@@ -285,7 +285,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                   <div className="text-center text-sm text-gray-400">
                     {maxCredit ? (
                       <div className="p-3 bg-[#1A1F26] rounded-lg border border-[#2D3643]">
-                        <p className="text-[#40E0D0] font-medium">
+                        <p className="text-[#40E0D0] font-medium text-sm lg:text-base">
                           Tu capacidad máxima de crédito es de {formatCurrency(maxCredit)}
                         </p>
                         <p className="text-xs mt-1">
@@ -293,10 +293,10 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                         </p>
                       </div>
                     ) : (
-                      <>
-                        <div>Monto mínimo: $1,000 MXN</div>
-                        <div>Monto máximo: $100,000 MXN</div>
-                      </>
+                      <div className="space-y-1">
+                        <div className="text-xs lg:text-sm">Monto mínimo: $1,000 MXN</div>
+                        <div className="text-xs lg:text-sm">Monto máximo: $100,000 MXN</div>
+                      </div>
                     )}
                   </div>
 
@@ -312,7 +312,7 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                   <Button
                     className={`
                       relative overflow-hidden group
-                      w-full py-4 rounded-xl text-sm font-bold mt-8
+                      w-full py-3 lg:py-4 rounded-xl text-sm font-bold mt-6
                       bg-[#33FF57] text-black
                       transition-all duration-300
                       hover:bg-[#40ff63] hover:scale-[1.01]
@@ -330,9 +330,9 @@ const CreditAmountForm = ({ onSubmit, isLoading, company, showLoader }) => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2 text-black">
-                        <span className="tracking-wider">VER OPCIONES DE FINANCIAMIENTO</span>
+                        <span className="tracking-wider text-xs lg:text-sm">VER OPCIONES DE FINANCIAMIENTO</span>
                         <svg 
-                          className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
+                          className="w-4 h-4 lg:w-5 lg:h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
