@@ -1,3 +1,5 @@
+import CompanyAuth from '../components/CompanyAuth';
+import { useNavigate } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -9,7 +11,24 @@ import logoLogistorage from '../assets/logos/logo_empresa_logistorage.png';
 import logoMulligans from '../assets/logos/logo_empresa_mulligans.png';
 import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 
-// ... existing code ...
+const Login = () => {
+  const navigate = useNavigate();
+
+  const handleAuthenticated = (companyData) => {
+    // Guardar los datos de la empresa en localStorage o en un estado global
+    localStorage.setItem('companyData', JSON.stringify(companyData));
+    // Redirigir a la página de inicio
+    navigate('/inicio');
+  };
+
+  return (
+    <div className="min-h-screen bg-n-8">
+      <CompanyAuth onAuthenticated={handleAuthenticated} />
+    </div>
+  );
+};
+
+export default Login;
 
       {/* Trusted By Section */}
       <div className="mt-20 py-10 bg-n-8/50 backdrop-blur-sm rounded-2xl">

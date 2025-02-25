@@ -10,7 +10,7 @@ import FinancingOptions from "./components/FinancingOptions";
 import CompanyAuth from "./components/CompanyAuth";
 import { getProductInfo } from "./services/api";
 import Typewriter from 'typewriter-effect';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import logoCartotec from './assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from './assets/logos/Logo_empresa_cadtoner.png';
@@ -22,6 +22,9 @@ import logoMatamoros from './assets/logos/logo_empresa_matamoros.png';
 import logoLogistorage from './assets/logos/logo_empresa_logistorage.png';
 import logoMulligans from './assets/logos/logo_empresa_mulligans.png';
 import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Plans from './pages/Plans';
 
 const App = () => {
   const [productData, setProductData] = useState(null);
@@ -173,11 +176,23 @@ const App = () => {
   );
 };
 
-// Create router configuration
+// Crear el enrutador con las rutas definidas
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Navigate to="/login" replace />
+  },
+  {
+    path: "/login",
+    element: <Login />
+  },
+  {
+    path: "/inicio",
+    element: <Home />
+  },
+  {
+    path: "/planes",
+    element: <Plans />
   }
 ], {
   future: {
@@ -186,7 +201,9 @@ const router = createBrowserRouter([
   }
 });
 
-// Export the RouterProvider component with our router configuration
-export default function AppWrapper() {
+// Componente principal que proporciona el enrutador
+const AppWrapper = () => {
   return <RouterProvider router={router} />;
-}
+};
+
+export default AppWrapper;
