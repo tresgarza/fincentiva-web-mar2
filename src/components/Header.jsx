@@ -47,18 +47,13 @@ const Header = () => {
     },
     {
       id: "1",
-      title: "Simulador",
-      url: "#get-started",
-      onClick: () => {
-        if (typeof window !== 'undefined' && window.setActiveForm) {
-          window.setActiveForm('product');
-        }
-      }
+      title: "Beneficios",
+      url: "#benefits",
     },
     {
       id: "2",
-      title: "Beneficios",
-      url: "#benefits",
+      title: "Contacto",
+      url: "#footer",
     }
   ];
 
@@ -68,21 +63,21 @@ const Header = () => {
         openNavigation ? "bg-n-8" : "bg-n-8/90 backdrop-blur-sm"
       }`}
     >
-      <div className="flex items-center px-5 lg:px-7.5 xl:px-10 max-lg:py-4">
+      <div className="flex items-center px-4 lg:px-6 max-lg:py-2 h-[50px]">
         <a 
           href="#hero" 
-          className="block w-[12rem] xl:mr-8"
+          className="block w-[10rem] mr-12"
           onClick={handleClick}
         >
-          <h1 className="text-2xl font-bold text-white">FINCENTIVA</h1>
+          <h1 className="text-xl font-bold text-white">FINCENTIVA</h1>
         </a>
 
         <nav
           className={`${
             openNavigation ? "flex" : "hidden"
-          } fixed top-[5rem] left-0 right-0 bottom-0 bg-n-8 lg:static lg:flex lg:mx-auto lg:bg-transparent`}
+          } fixed top-[4rem] left-0 right-0 bottom-0 bg-n-8 lg:static lg:flex lg:bg-transparent`}
         >
-          <div className="relative z-2 flex flex-col items-center justify-center m-auto lg:flex-row">
+          <div className="relative z-2 flex flex-col items-center justify-center m-auto lg:flex-row lg:justify-start">
             {navigation.map((item) => (
               <a
                 key={item.id}
@@ -91,13 +86,13 @@ const Header = () => {
                   handleClick(e);
                   item.onClick?.();
                 }}
-                className={`block relative font-code text-2xl uppercase text-n-1 transition-colors hover:text-[#33FF57] ${
+                className={`block relative font-code text-xl uppercase text-n-1 transition-colors hover:text-[#33FF57] ${
                   item.onlyMobile && "lg:hidden"
-                } px-6 py-6 md:py-8 lg:mr-0.25 lg:text-sm lg:font-semibold ${
+                } px-6 py-4 md:py-6 lg:mr-0.25 lg:text-sm lg:font-semibold ${
                   item.url === pathname.hash
                     ? "z-2 lg:text-n-1"
                     : "lg:text-n-1/50"
-                } lg:leading-5 lg:hover:text-[#33FF57] xl:px-12`}
+                } lg:leading-5 lg:hover:text-[#33FF57]`}
               >
                 {item.title}
               </a>

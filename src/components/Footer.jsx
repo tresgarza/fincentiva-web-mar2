@@ -6,11 +6,11 @@ import logoCNBV from "../assets/logos/Logo_CNBV.png";
 
 const Footer = () => {
   return (
-    <footer className="py-10 bg-n-8 border-t border-n-6">
+    <footer id="footer" className="py-10 bg-n-8 border-t border-n-6">
       <div className="container mx-auto px-4">
         {/* Sección de Reguladores */}
         <div className="mb-12">
-          <h4 className="text-lg font-semibold text-n-1 mb-6">
+          <h4 className="text-lg font-semibold text-n-1 mb-6 text-center whitespace-normal">
             Instituciones que nos Regulan, Califican y Reconocen:
           </h4>
           <div className="flex justify-center gap-8 mb-8">
