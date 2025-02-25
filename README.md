@@ -98,3 +98,59 @@ npm run dev
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Recent Updates
+
+### Port Management Enhancement
+- Added automatic port selection feature
+- Server now automatically finds an available port if the default port (3001) is in use
+- Improves development experience by preventing port conflicts
+
+## Development
+
+### Backend
+The backend server will automatically:
+1. Try to use the default port (3001)
+2. If port 3001 is in use, it will automatically increment and try the next available port
+3. Logs the actual port being used when the server starts
+
+### Environment Variables
+- `PORT`: (Optional) Default port for the server (defaults to 3001)
+- `NODE_ENV`: Environment setting ('development' or 'production')
+- `CORS_ORIGIN`: Allowed origins for CORS
+
+## Getting Started
+
+1. Clone the repository
+```bash
+git clone https://github.com/tresgarza/fincentiva-feb21-2025.git
+cd fincentiva-feb21-2025
+```
+
+2. Install dependencies
+```bash
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
+cd backend
+npm install
+```
+
+3. Start the development servers
+```bash
+# Start backend (will automatically find available port)
+cd backend
+npm run dev
+
+# Start frontend (in a new terminal)
+cd ..
+npm run dev
+```
+
+## Features
+- Automatic port management for development
+- Real-time product scraping
+- Financing calculations
+- Company authentication
+- Responsive design

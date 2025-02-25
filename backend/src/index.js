@@ -136,17 +136,47 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const server = app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`CORS Origin: ${process.env.CORS_ORIGIN || 'https://fincentiva-feb21-2025.vercel.app'}`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
+const findAvailablePort = async (startPort) => {
+  const net = await import('net');
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(findAvailablePort(startPort + 1));
+      } else {
+        reject(err);
+      }
+    });
+    server.listen(startPort, () => {
+      server.close(() => {
+        resolve(startPort);
+      });
+    });
   });
-}); 
+};
+
+// Start server with port fallback
+const startServer = async () => {
+  try {
+    const availablePort = await findAvailablePort(port);
+    const server = app.listen(availablePort, () => {
+      console.log(`Server running on port ${availablePort}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
+      console.log(`CORS Origin: ${process.env.CORS_ORIGIN || 'https://fincentiva-feb21-2025.vercel.app'}`);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM signal received: closing HTTP server');
+      server.close(() => {
+        console.log('HTTP server closed');
+      });
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer(); 
