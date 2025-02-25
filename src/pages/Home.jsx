@@ -84,27 +84,64 @@ const Home = () => {
   };
 
   if (!companyData) {
-    return null; // O un componente de carga
+    return null;
   }
 
   return (
-    <div className="relative overflow-hidden">
-      <Header />
-      <Hero 
-        activeForm={activeForm}
-        setActiveForm={setActiveForm}
-        showFinancingOptions={showFinancingOptions}
-        handleProductSubmit={handleProductSubmit}
-        handleAmountSubmit={handleAmountSubmit}
-        isLoading={isLoading}
-        companyData={companyData}
-        showLoader={showLoader}
-        productData={productData}
-        monthlyIncome={monthlyIncome}
-      />
-      <Benefits />
-      <Footer />
-      <ButtonGradient />
+    <div className="relative min-h-screen overflow-hidden bg-n-8">
+      {/* Animated Background Effects */}
+      <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 bg-gradient-to-br from-n-8 via-n-8/95 to-n-8/90 z-0" />
+        
+        {/* Animated Circles */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#33FF57]/10 rounded-full filter blur-3xl animate-blob" />
+        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-[#40E0D0]/10 rounded-full filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute bottom-0 left-1/3 w-[600px] h-[600px] bg-[#4DE8B2]/10 rounded-full filter blur-3xl animate-blob animation-delay-4000" />
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(51,255,87,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(51,255,87,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        <Header />
+        <Hero 
+          activeForm={activeForm}
+          setActiveForm={setActiveForm}
+          showFinancingOptions={showFinancingOptions}
+          handleProductSubmit={handleProductSubmit}
+          handleAmountSubmit={handleAmountSubmit}
+          isLoading={isLoading}
+          companyData={companyData}
+          showLoader={showLoader}
+          productData={productData}
+          monthlyIncome={monthlyIncome}
+        />
+        <div className="mt-8">
+          <Benefits />
+        </div>
+        <Footer />
+        <ButtonGradient />
+      </div>
+
+      {/* Add styles for animations */}
+      <style jsx>{`
+        @keyframes blob {
+          0% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 };

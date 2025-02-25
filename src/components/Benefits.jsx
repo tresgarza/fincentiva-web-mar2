@@ -4,6 +4,8 @@ import { AiOutlineRise } from "react-icons/ai";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { MdOutlineLocalOffer } from "react-icons/md";
 import Typewriter from 'typewriter-effect';
+import Section from "./Section";
+import { benefits } from "../constants";
 
 const Benefits = () => {
   const benefitsList = [
@@ -46,53 +48,31 @@ const Benefits = () => {
   ];
 
   return (
-    <section id="benefits" className="py-12 bg-black min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-4 text-[#33FF57]">
-            ¿Por qué elegir FINCENTIVA?
-          </h2>
-          <div className="text-white text-base h-12">
-            <Typewriter
-              options={{
-                strings: [
-                  'Simula y conoce tu capacidad de crédito al instante',
-                  'Elige el plan que mejor se adapte a tu presupuesto',
-                  'Financia tus compras de forma inteligente',
-                  'Solicita efectivo con pagos que puedas cumplir',
-                  'Toma el control de tus finanzas'
-                ],
-                autoStart: true,
-                loop: true,
-                delay: 50,
-                deleteSpeed: 30,
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <Section id="benefits" className="py-8">
+      <div className="container relative z-2">
+        <div className="relative grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {benefitsList.map((item) => (
             <div
               key={item.id}
-              className="bg-[#1A1A1A] rounded-lg p-4 transform transition-all duration-300 hover:scale-[1.02] hover:bg-[#252525] border border-[#333333] hover:border-[#33FF57] group"
+              className="relative p-0.5 rounded-[2.4rem] bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden"
             >
-              <div className="flex flex-col h-full">
-                <div className="mb-3 transform transition-all duration-300 group-hover:scale-105 group-hover:text-[#33FF57]">
-                  {item.iconComponent}
+              <div className="relative bg-n-8 rounded-[2.3rem] h-full p-8">
+                <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                  <div className="absolute top-0 left-1/2 w-[41.6rem] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[#40E0D0] opacity-10 blur-[100px]" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-white group-hover:text-[#33FF57] transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">
-                  {item.text}
-                </p>
+                <div className="relative z-2">
+                  <div className="mb-4 flex justify-center">
+                    {item.iconComponent}
+                  </div>
+                  <h3 className="h4 mb-4 text-center">{item.title}</h3>
+                  <p className="body-2 text-n-4 text-center">{item.text}</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </Section>
   );
 };
 
