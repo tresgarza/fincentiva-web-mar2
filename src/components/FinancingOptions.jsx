@@ -76,7 +76,8 @@ const FinancingOptions = ({ product, company, onSelectPlan, onBack, onLoaded }) 
           body: JSON.stringify({
             companyId: company.id,
             amount: product.price,
-            monthlyIncome: company.monthly_income // Asegurarnos de enviar el ingreso
+            monthlyIncome: company.monthly_income,
+            paymentFrequency: company.payment_frequency
           })
         });
 

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { getCompanies, getByCode } from '../services/api';
 import Button from './Button';
-import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt } from 'react-icons/fa';
+import { FaBuilding, FaLock, FaChartLine, FaCreditCard, FaUserTie, FaShieldAlt, FaCalendarAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 
 const CompanyAuth = ({ onAuthenticated }) => {
   const [employeeCode, setEmployeeCode] = useState('');
+  const [paymentFrequency, setPaymentFrequency] = useState('monthly');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,7 +18,12 @@ const CompanyAuth = ({ onAuthenticated }) => {
 
     try {
       const companyData = await getByCode(employeeCode);
-      onAuthenticated(companyData);
+      // Agregar la frecuencia de pago seleccionada a los datos de la empresa
+      const companyWithFrequency = {
+        ...companyData,
+        payment_frequency: paymentFrequency
+      };
+      onAuthenticated(companyWithFrequency);
     } catch (error) {
       setError(error.message || 'Error al verificar credenciales');
       console.error('Authentication error:', error);
@@ -25,6 +31,13 @@ const CompanyAuth = ({ onAuthenticated }) => {
       setIsLoading(false);
     }
   };
+
+  const frequencyOptions = [
+    { value: 'weekly', label: 'Semanal' },
+    { value: 'fortnightly', label: 'Catorcenal' },
+    { value: 'biweekly', label: 'Quincenal' },
+    { value: 'monthly', label: 'Mensual' }
+  ];
 
   const benefits = [
     {
@@ -107,6 +120,40 @@ const CompanyAuth = ({ onAuthenticated }) => {
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Nuevo campo de frecuencia de pago */}
+            <div className="relative group">
+              <label 
+                htmlFor="paymentFrequency" 
+                className="block text-sm font-medium text-n-3 mb-2"
+              >
+                ¿Cómo recibes tu nómina?
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <FaCalendarAlt className="text-n-4 group-focus-within:text-[#33FF57] transition-colors" />
+                </div>
+                <select
+                  id="paymentFrequency"
+                  value={paymentFrequency}
+                  onChange={(e) => setPaymentFrequency(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-n-7 text-n-1 border border-n-6 focus:outline-none focus:border-[#33FF57] transition-colors appearance-none"
+                >
+                  {frequencyOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="fill-current h-4 w-4 text-n-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#33FF57] to-[#33FF57] opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none"></div>
+              </div>
+            </div>
+
             <div className="relative group">
               <label 
                 htmlFor="employeeCode" 

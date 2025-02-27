@@ -85,13 +85,24 @@ router.post('/verify-password', async (req, res) => {
 // Calculate payments for a company
 router.post('/calculate-payments', async (req, res) => {
   try {
-    const { companyId, amount } = req.body;
+    const { companyId, amount, paymentFrequency } = req.body;
     
-    if (!companyId || !amount) {
-      return res.status(400).json({ error: 'Company ID and amount are required' });
+    if (!companyId || !amount || !paymentFrequency) {
+      return res.status(400).json({ error: 'Company ID, amount, and payment frequency are required' });
     }
 
-    const payments = await Company.calculatePayments(companyId, amount);
+    const company = await Company.getById(companyId);
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    // Usar la frecuencia de pago proporcionada por el frontend
+    const companyData = {
+      ...company,
+      payment_frequency: paymentFrequency
+    };
+
+    const payments = await Company.calculatePaymentsWithFrequency(companyId, amount, paymentFrequency);
     res.json(payments);
   } catch (error) {
     res.status(400).json({ error: error.message });
