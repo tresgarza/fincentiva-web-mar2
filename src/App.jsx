@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ButtonGradient from './assets/svg/ButtonGradient';
@@ -9,6 +9,31 @@ import PayrollLoan from './pages/PayrollLoan';
 import Login from './pages/Login';
 import CompanyPanel from './pages/CompanyPanel';
 import CompanyRegistration from './pages/CompanyRegistration';
+
+// Componente que se encarga de hacer scroll al inicio en cada cambio de ruta
+const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
+  
+  useEffect(() => {
+    console.log('Navegación detectada:', { pathname, hash });
+    
+    // Si hay un hash, dejamos que el manejo del hash específico lo haga el componente de destino
+    // Si no hay hash, scrolleamos al inicio de la página
+    if (!hash) {
+      console.log('Reset de scroll al inicio de la página');
+      // Forzar el scroll al inicio de la página
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant' // Uso 'instant' en lugar de 'auto' o 'smooth' para asegurar que sea inmediato
+      });
+    } else {
+      console.log('Se detectó un hash:', hash, 'Dejando que el componente destino maneje el scroll');
+    }
+  }, [pathname, hash]);
+  
+  return null;
+};
 
 const AppWrapper = () => {
   return (
@@ -29,6 +54,7 @@ const AppWrapper = () => {
 
         {/* Content */}
         <div className="relative z-10">
+          <ScrollToTop />
           <Header />
           <main>
             <Routes>

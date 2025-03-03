@@ -10,8 +10,12 @@ import { supabase } from '../lib/supabaseClient';
 import { testSupabaseConnection } from '../utils/supabaseTest';
 import { checkTableStructure } from '../utils/checkTableStructure';
 import appConfig from '../config/appConfig';
+import { useLocation } from 'react-router-dom';
 
 const AutoLoan = () => {
+  const location = useLocation();
+  const simulationData = location.state;
+
   // Test Supabase connection when component mounts
   useEffect(() => {
     const testConnection = async () => {
@@ -215,12 +219,12 @@ const AutoLoan = () => {
       }
       
       // Now try to insert the data
-      const { data, error } = await supabase
-        .from('simulations')
-        .insert([simulationData])
-        .select();
+        const { data, error } = await supabase
+          .from('simulations')
+          .insert([simulationData])
+          .select();
 
-      if (error) {
+        if (error) {
         console.error('Error saving simulation:', error);
         
         // Check if the error is about missing columns
@@ -247,46 +251,47 @@ const AutoLoan = () => {
         const formattedLoanAmount = formatCurrency(loanAmount);
         const formattedMonthlyPayment = formatCurrency(monthlyPayment);
         
-        // Textos específicos según el tipo de préstamo
-        let loanTypeText = '';
-        let introText = '';
-        let detailsTitle = '';
-        let additionalDetails = '';
-        let closingText = '';
+        const downPayment = loanType === 'autoLoan' ? carPrice - loanAmount : 0;
+        const formattedDownPayment = formatCurrency(downPayment);
         
-        if (loanType === 'autoLoan') {
-          // Crédito Automotriz
-          const downPayment = carPrice - loanAmount;
-          const downPaymentPercentage = Math.round((downPayment / carPrice) * 100);
-          
-          loanTypeText = 'Crédito Automotriz';
-          introText = `Hola, soy *${contactInfo.name} ${contactInfo.lastName}* y solicito información sobre *${loanTypeText}* para adquirir un vehículo.`;
-          detailsTitle = '*Detalles de mi simulación de Crédito Automotriz:*';
-          additionalDetails = `• Enganche: ${formatCurrency(downPayment)} (${downPaymentPercentage}% del valor)`;
-          closingText = 'Me interesa conocer los requisitos, documentación necesaria y el proceso para adquirir un vehículo con este crédito. Gracias.';
-        } else { 
-          // Préstamo por Auto (con garantía prendaria)
-          loanTypeText = 'Préstamo por Auto';
-          introText = `Hola, soy *${contactInfo.name} ${contactInfo.lastName}* y solicito información sobre *${loanTypeText} con garantía prendaria* de mi vehículo.`;
-          detailsTitle = '*Detalles de mi simulación de Préstamo por Auto:*';
-          additionalDetails = '• Mi auto quedará como garantía durante el plazo del préstamo';
-          closingText = 'Quisiera conocer los requisitos, documentación necesaria y el proceso para obtener este préstamo usando mi vehículo como garantía. Gracias.';
+        // Mensaje de WhatsApp personalizado según el tipo de préstamo
+        let introMessage = '';
+        let detailsTitle = '';
+        let messageContent = '';
+        let closingMessage = '';
+        
+        if (loanType === 'auto_loan') {
+          // Mensaje para Crédito Automotriz
+          introMessage = `Hola, soy *${contactInfo.name} ${contactInfo.lastName}* y estoy interesado en un *crédito automotriz*.`;
+          detailsTitle = 'Detalles de mi simulación de crédito:';
+          messageContent = `• Precio del auto: ${formattedCarPrice}
+• Enganche: ${formattedDownPayment}
+• Monto solicitado: ${formattedLoanAmount}
+• Plazo: ${termMonths} meses
+• Pago mensual: ${formattedMonthlyPayment}`;
+          closingMessage = 'Me gustaría conocer los requisitos y el proceso para obtener el crédito automotriz.';
+        } else if (loanType === 'car_backed_loan') {
+          // Mensaje para Préstamo por Auto
+          introMessage = `Hola, soy *${contactInfo.name} ${contactInfo.lastName}* y estoy interesado en un *Préstamo por Auto*.`;
+          detailsTitle = 'Detalles de mi simulación:';
+          messageContent = `• Auto y modelo: ${carModel || 'No especificado'}
+• Precio del auto: ${formattedCarPrice}
+• Monto solicitado: ${formattedLoanAmount}
+• Plazo: ${termMonths} meses
+• Pago mensual: ${formattedMonthlyPayment}`;
+          closingMessage = 'Me gustaría conocer los requisitos y el proceso para obtener mi Préstamo por Auto.';
         }
         
-        // Mensaje de WhatsApp mejorado y personalizado según el tipo de préstamo
-        const whatsappMessage = `${introText}
+        const whatsappMessage = `${introMessage}
 
-${detailsTitle}
-• Precio del auto: ${formattedCarPrice}
-${additionalDetails ? additionalDetails + '\n' : ''}• Monto solicitado: ${formattedLoanAmount}
-• Plazo: ${termMonths} meses
-• Pago mensual: ${formattedMonthlyPayment}
+*${detailsTitle}*
+${messageContent}
 
-*Mis datos de contacto:*
+*Contacto:*
 • Tel: ${contactInfo.phone}
 • Email: ${contactInfo.email}
 
-${closingText}`;
+${closingMessage} Gracias.`;
         
         // Secuencia de pasos con tiempos
         setTimeout(() => {
@@ -314,7 +319,7 @@ ${closingText}`;
       } else {
         showNotification('Simulación guardada correctamente', 'success');
       }
-      
+
       setContactInfoSaved(true);
       setShowSimulation(true);
       return true;
@@ -337,8 +342,10 @@ ${closingText}`;
     }
     
     if (loanType === 'autoLoan') {
+      // Para Crédito Automotriz
       await saveSimulation('auto_loan', carPrice, loanAmount, termMonths, monthlyPayment, true);
     } else if (loanType === 'carBackedLoan') {
+      // Para Préstamo por Auto
       if (!carModel.trim()) {
         showNotification('Por favor ingresa la marca y modelo del auto', 'error');
         return;
@@ -643,6 +650,143 @@ ${closingText}`;
     }
   };
 
+  // useEffect para cargar datos de simulación desde la navegación y hacer scroll
+  useEffect(() => {
+    // No hacemos window.scrollTo(0, 0) aquí porque ya lo hace el componente ScrollToTop global
+    
+    // Manejo de datos de simulación
+    if (location.state && location.state.carPrice) {
+      const simulationData = location.state;
+      console.log("Datos de simulación detectados:", simulationData);
+      
+      // Actualizar estados con los datos recibidos
+      setCarPrice(simulationData.carPrice);
+      setCarPriceInput(formatInputCurrency(simulationData.carPrice.toString()));
+      setDownPayment(simulationData.downPayment);
+      setDownPaymentInput(formatInputCurrency(simulationData.downPayment.toString()));
+      setTermMonths(simulationData.termMonths);
+      setLoanAmount(simulationData.loanAmount);
+      
+      // Actualizar cálculos
+      updateCalculations(simulationData.carPrice, simulationData.downPayment, simulationData.termMonths);
+      
+      // Hacer scroll después de un pequeño retraso para asegurar que la página esté cargada
+      setTimeout(() => {
+        scrollToSimulatorSection();
+      }, 800); // Aumentamos el tiempo para asegurar que la página esté completamente cargada
+    }
+    // Si no hay datos de simulación pero sí un hash, también hacer scroll
+    else if (location.hash === '#contact-section') {
+      console.log('Hash detectado:', location.hash);
+      setTimeout(() => {
+        scrollToContactSection();
+      }, 800);
+    }
+    // Si el hash es #simulator o #simulator-section, hacer scroll a la sección del simulador
+    else if (location.hash === '#simulator-section') {
+      console.log('Hash de simulador detectado:', location.hash);
+      setTimeout(() => {
+        scrollToSimulatorSection();
+      }, 800);
+    }
+  }, [location]);
+
+  const scrollToContactSection = () => {
+    console.log('Intentando hacer scroll al simulador...');
+    
+    // Intentos de scroll con diferentes métodos
+    const tryScrollById = () => {
+      const contactSection = document.getElementById('contact-section');
+      if (contactSection) {
+        console.log('Elemento encontrado por ID, haciendo scroll...');
+        contactSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return true;
+      }
+      console.log('No se encontró el elemento por ID');
+      return false;
+    };
+    
+    const tryScrollBySelector = () => {
+      // Intentar por el encabezado primero
+      const headers = Array.from(document.querySelectorAll('h4'));
+      const contactHeader = headers.find(el => 
+        el.textContent.includes('Información de Contacto')
+      );
+      
+      if (contactHeader) {
+        console.log('Encabezado de contacto encontrado, haciendo scroll...');
+        contactHeader.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return true;
+      }
+      
+      // Si no se encuentra el encabezado, intentar con otros selectores
+      console.log('Intentando encontrar la sección por otros medios...');
+      return false;
+    };
+    
+    // Intentar primero por ID
+    if (!tryScrollById()) {
+      // Si falla, intentar por selector
+      if (!tryScrollBySelector()) {
+        // Si ambos fallan, programar reintentos
+        const delays = [500, 1000, 2000, 3000, 5000];
+        
+        const attemptWithDelays = (index = 0) => {
+          if (index >= delays.length) {
+            console.log('Se agotaron los intentos de scroll');
+            return;
+          }
+          
+          setTimeout(() => {
+            console.log(`Reintentando scroll (intento ${index + 1})...`);
+            if (!tryScrollById() && !tryScrollBySelector() && index < delays.length - 1) {
+              attemptWithDelays(index + 1);
+            }
+          }, delays[index]);
+        };
+        
+        attemptWithDelays();
+      }
+    }
+  };
+
+  // Función para hacer scroll a la sección del simulador
+  const scrollToSimulatorSection = () => {
+    console.log('Intentando hacer scroll al simulador...');
+    
+    // Primero intentar por ID
+    const simulatorSectionById = document.getElementById('simulator-section');
+    if (simulatorSectionById) {
+      console.log('Sección de simulador encontrada por ID, haciendo scroll...');
+      simulatorSectionById.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    
+    // Luego intentar por clase
+    const simulatorSection = document.querySelector('.simulator-section');
+    if (simulatorSection) {
+      console.log('Sección de simulador encontrada por clase, haciendo scroll...');
+      simulatorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    
+    // Si no encuentra por clase, intentar encontrar por otros medios
+    const headers = Array.from(document.querySelectorAll('h2, h3, h4'));
+    const simulatorHeader = headers.find(el => 
+      el.textContent.includes('Simulador') || 
+      el.textContent.includes('Simulación') ||
+      el.textContent.includes('Crédito')
+    );
+    
+    if (simulatorHeader) {
+      console.log('Encabezado de simulador encontrado, haciendo scroll...');
+      simulatorHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    
+    console.log('No se encontró la sección del simulador');
+  };
+
   return (
     <div className="pt-[4.75rem] lg:pt-[5.25rem] overflow-hidden">
       {/* Hero Section */}
@@ -698,7 +842,7 @@ ${closingText}`;
       </AnimatePresence>
 
       {/* Simulator Section */}
-      <Section className="pt-10">
+      <Section id="simulator-section" className="pt-10">
         <div className="container">
           <motion.div
             initial={{ opacity: 0 }}
@@ -710,12 +854,11 @@ ${closingText}`;
             <div className="relative z-1">
               <motion.h2 
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="h3 mb-10 text-center"
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="h2 mb-10 text-center"
               >
-                Simula tu crédito <span className="text-gradient-primary">en segundos</span>
+                Simula tu Crédito <span className="text-color-1 inline-block">en segundos</span>
               </motion.h2>
 
               <div className="flex justify-center mb-8">
@@ -737,7 +880,8 @@ ${closingText}`;
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {/* Añadimos solo el ID simulator a la estructura original */}
+              <div id="simulator" className="simulator-section grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {loanType === 'autoLoan' ? (
                   <>
                     <div className="bg-n-7/50 rounded-xl p-6 backdrop-blur-sm border border-n-6">
@@ -1014,23 +1158,58 @@ ${closingText}`;
                                 </div>
                               </div>
 
-                              <div className="flex justify-center mt-6">
-                                <motion.button
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: hasPendingChanges ? 0.5 : 1, y: 0 }}
+                              {/* Sección de Pago Mensual y Botones */}
+                              <div className="payment-container">
+                                <div className="payment-info">
+                                  <div>
+                                    <div className="text-n-3 mb-1">Pago Mensual Estimado:</div>
+                                    <div className="flex items-center gap-3">
+                                      <div className={`payment-amount ${hasPendingChanges ? 'text-n-4' : 'text-color-1'}`}>
+                                        {formatCurrency(monthlyPayment)}
+                                      </div>
+                                      {hasPendingChanges && (
+                                        <span className="pending-badge">
+                                          Cambios pendientes
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="buttons-container">
+                                  {hasPendingChanges ? (
+                                    <>
+                                      <button
+                                        onClick={handleAutoLoanSimulation}
+                                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                                      >
+                                        <BsArrowRight className="text-xl" />
+                                        <span>Actualizar Simulación</span>
+                                      </button>
+                                      <button
+                                        disabled
+                                        className="flex-1 bg-n-6 text-white font-semibold rounded-xl px-6 py-4 opacity-50 cursor-not-allowed"
+                                      >
+                                        Solicitar Crédito
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
                                   onClick={handleLoanApplication}
-                                  className="w-full bg-gradient-to-r from-[#33FF57] to-[#40E0D0] text-black font-semibold rounded-xl px-8 py-4 hover:opacity-90 transition-opacity"
-                                  disabled={hasPendingChanges}
+                                      disabled={isSubmittingApplication}
+                                      className="flex-1 button button-primary px-6 py-4"
                                 >
                                   {isSubmittingApplication ? (
-                                    <div className="flex items-center justify-center gap-2">
-                                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                      Enviando...
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                          <span>Procesando...</span>
                                     </div>
                                   ) : (
-                                    "Solicitar Crédito"
+                                        'Solicitar Crédito'
                                   )}
-                                </motion.button>
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             </>
                           )}
@@ -1144,7 +1323,7 @@ ${closingText}`;
                       {/* Columna Derecha */}
                       <div className="space-y-6">
                         {/* Información de Contacto */}
-                        <div className="bg-n-7/50 rounded-xl p-6 backdrop-blur-sm border border-n-6">
+                        <div id="contact-section" className="bg-n-7/50 rounded-xl p-6 backdrop-blur-sm border border-n-6">
                           <h4 className="h4 mb-6">Información de Contacto</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

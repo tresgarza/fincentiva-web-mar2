@@ -163,6 +163,23 @@ const Services = () => {
     updateCalculations(carPrice, downPayment, months);
   };
 
+  // Modificar el componente Link para incluir los datos de la simulación
+  const getSimulationLink = () => {
+    const simulationData = {
+      carPrice,
+      downPayment,
+      termMonths,
+      loanAmount,
+    };
+    
+    // Aseguramos que el hash tenga el formato correcto con el símbolo #
+    return {
+      pathname: '/auto-loan',
+      state: simulationData,
+      hash: '#simulator-section'
+    };
+  };
+
   const mainServices = [
     "Aprobamos en 48 horas",
     "Tu buró no es determinante",
@@ -553,36 +570,7 @@ const Services = () => {
                       <span className="text-n-3">Plazo:</span>
                       <span className="text-xl font-semibold text-n-1">{termMonths} meses</span>
                     </div>
-
-                    <div className="p-4 mt-4 bg-n-8/90 rounded-lg border border-n-6">
-                      <div className="flex justify-between items-center">
-                        <span className="text-n-3">Pago Mensual Estimado:</span>
-                        <AnimatePresence mode="wait">
-                          {isCalculating ? (
-                            <motion.div
-                              key="loader"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              className="h-8 flex items-center"
-                            >
-                              <div className="w-6 h-6 border-2 border-color-1 border-t-transparent rounded-full animate-spin mr-2"></div>
-                            </motion.div>
-                          ) : (
-                            <motion.span
-                              key="amount"
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              className="text-2xl font-bold text-color-1"
-                            >
-                              {formatCurrency(monthlyPayment)}
-                            </motion.span>
-                          )}
-                        </AnimatePresence>
-              </div>
-            </div>
-          </div>
+                  </div>
 
                   <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -590,10 +578,10 @@ const Services = () => {
                     className="mt-6"
                   >
                     <Link
-                      to="/auto-loan"
+                      to={getSimulationLink()}
                       className="flex items-center justify-center gap-2 w-full bg-color-1 hover:bg-color-1/90 text-black font-semibold rounded-xl px-4 py-3 transition-colors duration-200"
                     >
-                      Solicitar Crédito
+                      Continuar con Simulación
                       <BsArrowRight />
                     </Link>
                   </motion.div>

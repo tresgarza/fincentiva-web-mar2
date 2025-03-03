@@ -208,7 +208,7 @@ const Benefits = () => {
                 </motion.button>
               </Link>
               
-              <Link to="/auto-loan#simulator">
+              <Link to="/auto-loan#simulator-section">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
