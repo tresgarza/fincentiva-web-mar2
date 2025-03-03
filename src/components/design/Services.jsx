@@ -1,4 +1,8 @@
 import Typewriter from "typewriter-effect";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaMoneyBillWave, FaHospital, FaHome, FaShoppingCart, FaLaptop, FaCouch, FaMoneyCheck, FaMedkit, FaTools, FaCarSide, FaPercent, FaClock, FaCheckCircle, FaRocket } from "react-icons/fa";
+import { GiSteeringWheel, GiSpeedometer, GiCarDoor, GiCarSeat, GiCalendar, GiCash, GiBank, GiHourglass } from "react-icons/gi";
 
 import {
   brainwaveWhiteSymbol,
@@ -8,112 +12,349 @@ import {
   play,
 } from "../../assets";
 import ChatBubbleWing from "../../assets/svg/ChatBubbleWing";
-import { useEffect, useRef, useState } from "react";
+
+const nominalMessages = [
+  { text: "Financia muebles y electrodomésticos", icon: FaHome },
+  { text: "Cubre gastos médicos y emergencias", icon: FaMedkit },
+  { text: "Realiza compras en línea y retail", icon: FaShoppingCart },
+  { text: "Mejoras y reparaciones del hogar", icon: FaTools },
+  { text: "Aprobación inmediata para colaboradores", icon: FaCheckCircle }
+];
+
+const autoMessages = [
+  { text: "Financiamiento desde $100,000 MXN", icon: FaMoneyBillWave },
+  { text: "Tasa preferencial desde 3.7% mensual", icon: FaPercent },
+  { text: "Plazos flexibles de hasta 48 meses", icon: FaClock },
+  { text: "Simula tu crédito 100% en linea", icon: FaRocket },
+  { text: "Auto nuevo, seminuevo o usado a tu alcance", icon: FaCarSide }
+];
 
 export const Gradient = () => {
   return (
     <div className="absolute top-0 -left-[10rem] w-[56.625rem] h-[56.625rem] opacity-50 mix-blend-color-dodge pointer-events-none">
-      <img
-        className="absolute top-1/2 left-1/2 w-[79.5625rem] max-w-[79.5625rem] h-[88.5625rem] -translate-x-1/2 -translate-y-1/2"
-        src={gradient}
-        width={1417}
-        height={1417}
-        alt="Gradient"
-      />
+      <div className="absolute inset-0 bg-gradient-to-r from-color-1 to-color-2 rounded-full blur-[6rem]" />
     </div>
   );
 };
+
+export const HologramEffect = ({ Icon, isVisible }) => {
+  // Asegurarse de que el ícono es un componente válido antes de intentar renderizarlo
+  const IconComponent = React.isValidElement(Icon) ? Icon : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.8 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      <div className="relative w-full h-full max-w-[200px] max-h-[200px] mx-auto">
+        {/* Base del holograma */}
+        <motion.div 
+          className="absolute inset-0 rounded-full bg-[#33FF57]/5"
+          animate={{
+            boxShadow: [
+              '0 0 40px 20px rgba(51,255,87,0.1), inset 0 0 20px 10px rgba(51,255,87,0.1)',
+              '0 0 60px 30px rgba(51,255,87,0.15), inset 0 0 30px 15px rgba(51,255,87,0.15)',
+              '0 0 40px 20px rgba(51,255,87,0.1), inset 0 0 20px 10px rgba(51,255,87,0.1)'
+            ]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+
+        {/* Anillos giratorios */}
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute inset-0 rounded-full border border-[#33FF57]/20"
+            animate={{
+              rotate: [0, 360]
+            }}
+            transition={{
+              duration: 10 - i * 2,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
+
+        {/* Ícono central */}
+        {IconComponent && isVisible && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center text-[#33FF57] text-4xl"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.8, 1, 0.8]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {IconComponent}
+          </motion.div>
+        )}
+
+        {/* Efecto de escaneo */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-[#33FF57]/10 to-transparent"
+          animate={{
+            y: [-100, 100]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+
+        {/* Líneas de interferencia */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(10)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-full h-[1px] bg-[#33FF57]/10"
+              style={{ top: `${i * 10}%` }}
+              animate={{
+                x: [-100, 100]
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear",
+                delay: i * 0.1
+              }}
+            />
+          ))}
+        </div>
+    </div>
+    </motion.div>
+  );
+};
+
+const LoadingHologram = () => (
+  <motion.div
+    className="relative w-60 h-60"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* Base glow */}
+    <motion.div
+      className="absolute inset-0 bg-gradient-to-r from-color-1/10 to-color-2/10 rounded-full blur-[50px]"
+      animate={{
+        scale: [1, 1.2, 1],
+        opacity: [0.2, 0.3, 0.2]
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "reverse"
+      }}
+    />
+    
+    {/* Loading circles */}
+    <div className="absolute inset-0 flex items-center justify-center">
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 bg-color-1 rounded-full"
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.5, 1, 0.5]
+          }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            delay: i * 0.3
+          }}
+          style={{
+            left: `${50 + Math.cos(i * (Math.PI * 2) / 3) * 20}%`,
+            top: `${50 + Math.sin(i * (Math.PI * 2) / 3) * 20}%`
+          }}
+        />
+      ))}
+      </div>
+  </motion.div>
+);
 
 export const PhotoChatMessage = () => {
-  return (
-    <div className="absolute top-8 right-8 w-[18rem] h-[6rem] py-6 px-8 bg-black rounded-t-xl rounded-bl-xl font-code text-base lg:top-16 lg:right-[8.75rem]">
-      <Typewriter
-        options={{
-          strings: [
-            "Hey Brainwave, enhance this photo.",
-            "Hey Brainwave, give this photo a boost.",
-            "Brainwave, enhance the details in this photo.",
-            "Activate Brainwave mode to refine this photo.",
-            "Brainwave, apply your magic to this photo.",
-          ],
-          autoStart: true,
-          loop: true,
-        }}
-      />
-      <ChatBubbleWing className="absolute left-full bottom-0" />
-    </div>
-  );
-};
-
-export const VideoChatMessage = ({ isPlaying }) => {
-  return (
-    <div className="absolute top-8 left-[3.125rem] w-full max-w-[14rem] pt-2.5 pr-2.5 pb-7 pl-5 bg-n-6 rounded-t-xl rounded-br-xl font-code text-base md:max-w-[17.5rem]">
-      <Typewriter
-        options={{
-          strings: isPlaying ? ["Video generating..."] : ["Video generated!"],
-          cursor: isPlaying ? "|" : "",
-          autoStart: true,
-          deleteSpeed: isPlaying ? "natural" : Infinity,
-          loop: isPlaying,
-        }}
-      />
-      <div className="absolute left-5 -bottom-[1.125rem] flex items-center justify-center w-[2.25rem] h-[2.25rem] bg-color-1 rounded-[0.75rem]">
-        <img
-          src={brainwaveWhiteSymbol}
-          width={26}
-          height={26}
-          alt="Brainwave"
-        />
-      </div>
-      <div className="tagline absolute right-2.5 bottom-1 text-[0.625rem] text-n-3 uppercase">
-        {isPlaying ? (
-          <img
-            src={loading}
-            alt="Loading"
-            className="w-4 h-4 animate-spin pointer-events-none select-none"
-          />
-        ) : (
-          <span>just now</span>
-        )}
-      </div>
-      <ChatBubbleWing
-        className="absolute right-full bottom-0 -scale-x-100"
-        pathClassName="fill-n-6"
-      />
-    </div>
-  );
-};
-
-export const VideoBar = ({ isPlaying, setIsPlaying }) => {
-  const [counter, setCounter] = useState(0);
-  const progressRef = useRef(null);
+  const [currentMessage, setCurrentMessage] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [showHologram, setShowHologram] = useState(false);
+  const [currentIcon, setCurrentIcon] = useState(nominalMessages[0].icon);
+  const typingTimeoutRef = useRef(null);
+  const messageTimeoutRef = useRef(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (counter >= 100) setCounter(0);
-      if (!isPlaying) return clearInterval(interval);
+    const startTyping = () => {
+      setIsTyping(true);
+      setShowHologram(false);
+      setDisplayText("");
+      let currentText = "";
+      let currentIndex = 0;
+      
+      // Safely get the current message and icon
+      const message = nominalMessages[currentMessage];
+      if (!message) return;
+      
+      setCurrentIcon(message.icon);
 
-      progressRef.current.style.width = `${counter}%`;
-      setCounter((oldCounter) => oldCounter + 0.5);
-    }, 100);
+      const typeNextChar = () => {
+        if (currentIndex < message.text.length) {
+          currentText += message.text[currentIndex];
+          setDisplayText(currentText);
+          currentIndex++;
+          typingTimeoutRef.current = setTimeout(typeNextChar, 50);
+        } else {
+          setIsTyping(false);
+          // Show hologram after text is complete
+          setTimeout(() => {
+            setShowHologram(true);
+            // Wait before next message
+            messageTimeoutRef.current = setTimeout(() => {
+              setCurrentMessage((prev) => (prev + 1) % nominalMessages.length);
+            }, 5000);
+          }, 1000);
+        }
+      };
 
-    return () => clearInterval(interval);
-  }, [counter, isPlaying]);
+      typeNextChar();
+    };
+
+    startTyping();
+
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+    };
+  }, [currentMessage]);
 
   return (
-    <div className="absolute left-0 bottom-0 w-full flex items-center p-6">
-      <img
-        src={isPlaying ? pause : play}
-        width={24}
-        height={24}
-        alt="Play"
-        className="object-contain mr-3 cursor-pointer"
-        onClick={() => setIsPlaying(!isPlaying)}
-      />
-
-      <div className="flex-1 bg-[#D9D9D9]">
-        <div ref={progressRef} className="h-0.5 bg-color-1 transition-all" />
+    <div className="flex flex-col items-center gap-1 justify-center w-full">
+      <div className="text-lg text-n-1 text-center min-h-[4rem] flex items-center justify-center">
+        {displayText}
+        {isTyping && (
+          <motion.span
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            |
+          </motion.span>
+        )}
+      </div>
+      
+      <div className="relative w-60 h-60 mx-auto">
+        <AnimatePresence>
+          {isTyping ? (
+            <LoadingHologram />
+          ) : (
+            <HologramEffect 
+              Icon={currentIcon}
+              isVisible={showHologram}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
+};
+
+export const VideoChatMessage = () => {
+  const [currentMessage, setCurrentMessage] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [showHologram, setShowHologram] = useState(false);
+  const [currentIcon, setCurrentIcon] = useState(autoMessages[0].icon);
+  const typingTimeoutRef = useRef(null);
+  const messageTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    const startTyping = () => {
+      setIsTyping(true);
+      setShowHologram(false);
+      setDisplayText("");
+      let currentText = "";
+      let currentIndex = 0;
+      
+      // Safely get the current message and icon
+      const message = autoMessages[currentMessage];
+      if (!message) return;
+      
+      setCurrentIcon(message.icon);
+
+      const typeNextChar = () => {
+        if (currentIndex < message.text.length) {
+          currentText += message.text[currentIndex];
+          setDisplayText(currentText);
+          currentIndex++;
+          typingTimeoutRef.current = setTimeout(typeNextChar, 50);
+        } else {
+          setIsTyping(false);
+          // Show hologram after text is complete
+          setTimeout(() => {
+            setShowHologram(true);
+            // Wait before next message
+            messageTimeoutRef.current = setTimeout(() => {
+              setCurrentMessage((prev) => (prev + 1) % autoMessages.length);
+            }, 5000);
+          }, 1000);
+        }
+      };
+
+      typeNextChar();
+    };
+
+    startTyping();
+
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+    };
+  }, [currentMessage]);
+
+  return (
+    <div className="flex flex-col items-center gap-1 justify-center w-full">
+      <div className="text-lg text-n-1 text-center min-h-[4rem] flex items-center justify-center">
+        {displayText}
+        {isTyping && (
+          <motion.span
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            |
+          </motion.span>
+        )}
+      </div>
+      
+      <div className="relative w-60 h-60 mx-auto">
+        <AnimatePresence>
+          {isTyping ? (
+            <LoadingHologram />
+          ) : (
+            <HologramEffect 
+              Icon={currentIcon}
+              isVisible={showHologram}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
 };

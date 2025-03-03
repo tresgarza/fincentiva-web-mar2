@@ -1,209 +1,70 @@
-import { useState, useEffect } from "react";
-import ButtonGradient from "./assets/svg/ButtonGradient";
-import Benefits from "./components/Benefits";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import Hero from "./components/Hero";
-import ProductLinkForm from "./components/ProductLinkForm";
-import CreditAmountForm from "./components/CreditAmountForm";
-import FinancingOptions from "./components/FinancingOptions";
-import CompanyAuth from "./components/CompanyAuth";
-import { getProductInfo } from "./services/api";
-import Typewriter from 'typewriter-effect';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import logoCartotec from './assets/logos/logo_empresa_cartotec.png';
-import logoCadtoner from './assets/logos/Logo_empresa_cadtoner.png';
-import logoEtimex from './assets/logos/logo_empresa_etimex.png';
-import logoFortezza from './assets/logos/logo_empresa_fortezza.png';
-import logoPlastypel from './assets/logos/logo_empresa_plastypel.png';
-import logoUnoretail from './assets/logos/logo_empresa_unoretail.png';
-import logoMatamoros from './assets/logos/logo_empresa_matamoros.png';
-import logoLogistorage from './assets/logos/logo_empresa_logistorage.png';
-import logoMulligans from './assets/logos/logo_empresa_mulligans.png';
-import logoVallealto from './assets/logos/logo_empresa_vallealto.png';
-import Login from './pages/Login';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import ButtonGradient from './assets/svg/ButtonGradient';
 import Home from './pages/Home';
-import Plans from './pages/Plans';
+import AutoLoan from './pages/AutoLoan';
+import PayrollLoan from './pages/PayrollLoan';
+import Login from './pages/Login';
+import CompanyPanel from './pages/CompanyPanel';
+import CompanyRegistration from './pages/CompanyRegistration';
 
-const App = () => {
-  const [productData, setProductData] = useState(null);
-  const [showFinancingOptions, setShowFinancingOptions] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [companyData, setCompanyData] = useState(null);
-  const [activeForm, setActiveForm] = useState('product'); // 'product' o 'amount'
-  const [monthlyIncome, setMonthlyIncome] = useState(null);
-  const [showLoader, setShowLoader] = useState(false);
-
-  // Exponer setActiveForm globalmente
-  useEffect(() => {
-    window.setActiveForm = (formType) => {
-      setActiveForm(formType);
-      // Dar tiempo para que el estado se actualice antes de hacer scroll
-      setTimeout(() => {
-        const element = document.getElementById('get-started');
-        if (element) {
-          const offset = element.offsetTop - 100; // Ajustar el offset para que quede más arriba
-          window.scrollTo({
-            top: offset,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
-    };
-
-    return () => {
-      delete window.setActiveForm;
-    };
-  }, []);
-
-  const handleProductSubmit = async (productLink, income, monthlyIncome) => {
-    setIsLoading(true);
-    setShowLoader(true);
-    setError(null);
-    
-    try {
-      const data = await getProductInfo(productLink);
-      setProductData(data);
-      setMonthlyIncome(income);
-      
-      // Esperamos a que los datos estén listos
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mostramos las opciones de financiamiento
-      setShowFinancingOptions(true);
-      
-      // El loader se mantendrá hasta que FinancingOptions llame a onLoaded
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching product data:", err);
-      setShowLoader(false);
-      setIsLoading(false);
-    }
-  };
-
-  const handleAmountSubmit = async (amount, income) => {
-    setIsLoading(true);
-    setShowLoader(true);
-    setError(null);
-    
-    try {
-      setMonthlyIncome(income);
-
-      const simulatedProduct = {
-        title: "Crédito en Efectivo",
-        price: amount,
-        features: ["Financiamiento directo", "Disponibilidad inmediata"]
-      };
-      
-      // Esperamos a que los datos estén listos
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Establecemos el producto y mostramos las opciones
-      setProductData(simulatedProduct);
-      setShowFinancingOptions(true);
-      
-      // El loader se mantendrá hasta que FinancingOptions llame a onLoaded
-    } catch (err) {
-      setError(err.message);
-      console.error("Error processing amount:", err);
-      setShowLoader(false);
-      setIsLoading(false);
-    }
-  };
-
-  const handleCompanyAuthenticated = (company) => {
-    setCompanyData(company);
-  };
-
-  const handlePlanSelection = (planId) => {
-    // TODO: Implement financing application process
-    console.log("Selected plan:", planId);
-  };
-
-  const handleBack = () => {
-    // Primero hacemos el scroll suave hacia arriba
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-
-    // Después de un pequeño delay, actualizamos los estados
-    setTimeout(() => {
-      setShowFinancingOptions(false);
-      setProductData(null);
-      setError(null);
-    }, 100);
-  };
-
-  return (
-    <>
-      <div className="relative overflow-hidden">
-        {/* Autenticación de la empresa */}
-        {!companyData && (
-          <CompanyAuth onAuthenticated={handleCompanyAuthenticated} />
-        )}
-
-        {/* Contenido principal */}
-        {companyData && (
-          <>
-            <Header />
-            <Hero 
-              activeForm={activeForm}
-              setActiveForm={setActiveForm}
-              showFinancingOptions={showFinancingOptions}
-              handleProductSubmit={handleProductSubmit}
-              handleAmountSubmit={handleAmountSubmit}
-              isLoading={isLoading}
-              companyData={companyData}
-              showLoader={showLoader}
-              productData={productData}
-              monthlyIncome={monthlyIncome}
-              handlePlanSelection={handlePlanSelection}
-              handleBack={handleBack}
-              setShowLoader={setShowLoader}
-              setIsLoading={setIsLoading}
-            />
-            {!showFinancingOptions && <Benefits />}
-            <Footer />
-          </>
-        )}
-      </div>
-
-      <ButtonGradient />
-    </>
-  );
-};
-
-// Crear el enrutador con las rutas definidas
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Navigate to="/login" replace />
-  },
-  {
-    path: "/login",
-    element: <Login />
-  },
-  {
-    path: "/inicio",
-    element: <Home />
-  },
-  {
-    path: "/planes",
-    element: <Plans />
-  }
-], {
-  future: {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true
-  }
-});
-
-// Componente principal que proporciona el enrutador
 const AppWrapper = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <Router>
+      <div className="relative min-h-screen overflow-hidden bg-n-8">
+        {/* Animated Background Effects */}
+        <div className="absolute inset-0 w-full h-full">
+          <div className="absolute inset-0 bg-gradient-to-br from-n-8 via-n-8/95 to-n-8/90 z-0" />
+          
+          {/* Animated Circles */}
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#33FF57]/10 rounded-full filter blur-3xl animate-blob" />
+          <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-[#40E0D0]/10 rounded-full filter blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute bottom-0 left-1/3 w-[600px] h-[600px] bg-[#4DE8B2]/10 rounded-full filter blur-3xl animate-blob animation-delay-4000" />
+          
+          {/* Grid Pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(51,255,87,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(51,255,87,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10">
+          <Header />
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/auto-loan" element={<AutoLoan />} />
+              <Route path="/payroll-loan" element={<PayrollLoan />} />
+              <Route path="/company-panel" element={<CompanyPanel />} />
+              <Route path="/register" element={<CompanyRegistration />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Footer />
+          <ButtonGradient />
+        </div>
+
+        {/* Add styles for animations */}
+        <style jsx>{`
+          @keyframes blob {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+          }
+          .animate-blob {
+            animation: blob 7s infinite;
+          }
+          .animation-delay-2000 {
+            animation-delay: 2s;
+          }
+          .animation-delay-4000 {
+            animation-delay: 4s;
+          }
+        `}</style>
+      </div>
+    </Router>
+  );
 };
 
 export default AppWrapper;

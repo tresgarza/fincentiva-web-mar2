@@ -1,10 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './api';
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Missing Supabase credentials. Please check your environment variables.');
-}
+const supabaseUrl = 'https://ydnygntfkrleiseuciwq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkbnlnbnRma3JsZWlzZXVjaXdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDg1NjI0NzAsImV4cCI6MjAyNDEzODQ3MH0.Pu_qDHBbGMX0vZz6qXFxz0UtRoTB6YXtLDVxU-KxB_I';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-export { supabase }; 
+export const supabase = createClient(supabaseUrl, supabaseKey); 

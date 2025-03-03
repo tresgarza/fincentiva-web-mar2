@@ -1,14 +1,14 @@
-import { useState } from "react";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import Button from "./Button";
 import Section from "./Section";
 import { FaLink, FaMoneyBillWave } from "react-icons/fa";
 import { BsArrowRight, BsClipboard, BsCheckCircle } from "react-icons/bs";
-import { motion } from "framer-motion";
 
-const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
-  const [productLink, setProductLink] = useState("");
-  const [income, setIncome] = useState("");
-  const [error, setError] = useState("");
+const ProductLinkForm = ({ onSubmit = () => {}, isLoading, company, showLoader }) => {
+  const [productLink, setProductLink] = useState('');
+  const [income, setIncome] = useState('');
+  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [maxCredit, setMaxCredit] = useState(null);
 
@@ -148,176 +148,77 @@ const ProductLinkForm = ({ onSubmit, isLoading, company, showLoader }) => {
   };
 
   return (
-    <Section id="product-link" className={showLoader ? 'hidden' : 'block'}>
-      <div className="container">
-        <div className="relative p-1 rounded-xl bg-gradient-to-r from-[#40E0D0] via-[#4DE8B2] to-[#3FD494] overflow-hidden">
-          <div className="absolute inset-0">
-            <div className="absolute inset-0" 
-              style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                transform: 'translateX(-100%)',
-                animation: 'gradient-slide 3s linear infinite'
-              }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full"
+    >
+      <div className="bg-n-7 rounded-2xl p-6 border border-n-6">
+        <h3 className="h5 mb-4 text-color-1">Ingresa los detalles de tu producto</h3>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="productLink" className="block text-n-4 mb-2">Enlace del Producto</label>
+            <input
+              type="url"
+              id="productLink"
+              value={productLink}
+              onChange={(e) => setProductLink(e.target.value)}
+              placeholder="https://www.amazon.com.mx/producto..."
+              className="w-full p-3 bg-n-6 rounded-lg text-n-1 border border-n-5 focus:border-color-1 focus:outline-none transition-colors"
+              required
             />
+            <p className="text-xs text-n-4 mt-1">Enlace de Amazon o Mercado Libre México</p>
           </div>
-
-          <div className="relative bg-[#0D1117] rounded-xl p-6 lg:p-8">
-            <div className="flex items-center justify-center mb-4">
-                    <div className="relative">
-                <FaLink className="text-[#40E0D0] text-2xl lg:text-3xl animate-pulse" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-[#33FF57] rounded-full animate-ping" />
-                    </div>
-                  </div>
-                  
-            <h3 className="text-xl lg:text-2xl font-bold mb-2 text-center">Comienza tu Compra</h3>
-            <p className="text-sm text-n-4 mb-4 text-center">
-              Ingresa tus datos para calcular tu mensualidad
-            </p>
-                  
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    {/* Campo de Ingresos */}
-              <div className="flex flex-col gap-1.5">
-                      <label htmlFor="income" className="text-n-4 text-sm">
-                        ¿Cuánto ganas por {getPaymentFrequencyLabel()}?
-                      </label>
-                      <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-n-4">
-                          $
-                        </span>
-                        <input
-                          type="text"
-                          id="income"
-                          value={income}
-                          onChange={(e) => handleNumberInput(e, setIncome)}
-                          placeholder="0"
-                    className="w-full px-8 py-2.5 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-right pr-16 text-sm"
-                          required
-                        />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-n-4 text-sm">
-                          MXN
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Campo de Enlace del Producto */}
-              <div className="flex flex-col gap-1.5">
-                  <label htmlFor="productLink" className="text-n-4 text-sm">
-                    Enlace del Producto
-                  </label>
-                      <div className="relative group">
-                  <input
-                    type="url"
-                    id="productLink"
-                    value={productLink}
-                    onChange={(e) => {
-                      setProductLink(e.target.value);
-                            setError("");
-                    }}
-                    placeholder="https://www.amazon.com.mx/producto..."
-                    className="w-full px-3 py-2.5 rounded-lg bg-[#1A1F26] text-white placeholder-gray-500 border border-[#2D3643] focus:outline-none focus:border-[#40E0D0] transition-colors text-sm"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                      </div>
-
-              <div className="text-center text-sm text-gray-400">
-                {maxCredit ? (
-                  <div className="p-2.5 bg-[#1A1F26] rounded-lg border border-[#2D3643]">
-                    <p className="text-[#40E0D0] font-medium text-sm">
-                      Tu capacidad máxima de crédito es de {formatCurrency(maxCredit)}
-                    </p>
-                    <p className="text-xs mt-0.5">
-                      Basado en el 25% de tus ingresos por {getPaymentFrequencyLabel()}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-0.5">
-                    <div>Aceptamos productos de:</div>
-                        <div className="flex justify-center items-center gap-4">
-                          <a 
-                            href="https://www.amazon.com.mx" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 hover:text-[#FF9900] transition-colors"
-                          >
-                        <span className="text-lg">🛍️</span>
-                            <span>Amazon</span>
-                          </a>
-                          <span>y</span>
-                          <a 
-                            href="https://www.mercadolibre.com.mx" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 hover:text-[#FFE600] transition-colors"
-                          >
-                        <span className="text-lg">🌟</span>
-                            <span>MercadoLibre</span>
-                          </a>
-                        </div>
-                      </div>
-                )}
-                </div>
-
-                    {error && (
-                <div className="relative overflow-hidden rounded-lg">
-                        <div className="absolute inset-0 bg-red-500/10 animate-pulse"></div>
-                  <div className="relative text-red-500 text-sm px-3 py-1.5">
-                          {error}
-                        </div>
-                      </div>
-                    )}
-
-                    <button
-                  type="submit"
-                  disabled={isSubmitting || isLoading}
-                      className={`
-                        relative overflow-hidden group
-                  w-full py-2.5 rounded-lg text-sm font-bold mt-0
-                        bg-[#33FF57] text-black
-                        transition-all duration-300
-                        hover:bg-[#40ff63] hover:scale-[1.01]
-                        active:scale-[0.99]
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        disabled:hover:scale-100 disabled:hover:bg-[#33FF57]
-                      `}
-                    >
-                      {isSubmitting || isLoading ? (
-                        <div className="flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
-                          <span className="text-black">Procesando...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2 text-black">
-                    <span className="tracking-wider text-xs">VER OPCIONES DE FINANCIAMIENTO</span>
-                          <svg 
-                      className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-1" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M13 7l5 5m0 0l-5 5m5-5H6" 
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-              </form>
+          
+          <div>
+            <label htmlFor="income" className="block text-n-4 mb-2">Ingreso Mensual</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-n-4">$</span>
+              <input
+                type="number"
+                id="income"
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
+                placeholder="0"
+                className="w-full p-3 pl-8 bg-n-6 rounded-lg text-n-1 border border-n-5 focus:border-color-1 focus:outline-none transition-colors"
+                min="1"
+                required
+              />
+            </div>
           </div>
-        </div>
+          
+          {error && (
+            <div className="text-red-500 text-sm p-2 bg-red-500/10 rounded-lg">
+              {error}
+            </div>
+          )}
+          
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="w-full py-3 bg-color-1 hover:bg-color-2 text-black font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              Simular Financiamiento
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M13 7l5 5m0 0l-5 5m5-5H6" 
+                />
+              </svg>
+            </button>
+          </div>
+        </form>
       </div>
-
-      <style jsx>{`
-        @keyframes gradient-slide {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
-    </Section>
+    </motion.div>
   );
 };
 

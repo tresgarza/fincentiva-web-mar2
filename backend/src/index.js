@@ -9,7 +9,7 @@ import companyRoutes from './routes/company.routes.js';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000', 10);
 
 // Configuración de seguridad
 app.use(helmet({

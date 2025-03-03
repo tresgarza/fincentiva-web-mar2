@@ -1,5 +1,7 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import Section from '../components/Section';
 import CompanyAuth from '../components/CompanyAuth';
-import { useNavigate } from 'react-router-dom';
 import logoCartotec from '../assets/logos/logo_empresa_cartotec.png';
 import logoCadtoner from '../assets/logos/Logo_empresa_cadtoner.png';
 import logoEtimex from '../assets/logos/logo_empresa_etimex.png';
@@ -12,23 +14,59 @@ import logoMulligans from '../assets/logos/logo_empresa_mulligans.png';
 import logoVallealto from '../assets/logos/logo_empresa_vallealto.png';
 
 const Login = () => {
-  const navigate = useNavigate();
-
-  const handleAuthenticated = (companyData) => {
-    // Guardar los datos de la empresa en localStorage o en un estado global
-    localStorage.setItem('companyData', JSON.stringify(companyData));
-    // Redirigir a la página de inicio
-    navigate('/inicio');
-  };
-
   return (
-    <div className="min-h-screen bg-n-8">
-      <CompanyAuth onAuthenticated={handleAuthenticated} />
-    </div>
-  );
-};
-
-export default Login;
+    <div className="pt-[4.75rem] lg:pt-[5.25rem] overflow-hidden">
+      <Section className="mt-[2rem]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container">
+          <div className="max-w-md mx-auto">
+            <h1 className="h2 mb-6 text-center">Acceso Empresarial</h1>
+            <p className="body-2 mb-8 text-n-4 text-center">
+              Inicia sesión para gestionar los créditos de nómina de tus empleados
+            </p>
+            
+            <CompanyAuth />
+          </div>
+        </motion.div>
+      </Section>
+      
+      {/* Beneficios para empresas */}
+      <Section className="mt-16">
+        <div className="container">
+          <h2 className="h3 mb-10 text-center">Beneficios del Portal Empresarial</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Gestión Centralizada",
+                description: "Administra todas las solicitudes de crédito de tus empleados desde un solo lugar."
+              },
+              {
+                title: "Reportes Detallados",
+                description: "Accede a informes y analíticas sobre los créditos otorgados a tu personal."
+              },
+              {
+                title: "Proceso Automatizado",
+                description: "Sistema automatizado de descuentos vía nómina sin intervención manual."
+              }
+            ].map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-n-7 rounded-xl p-6 border border-n-6 hover:border-color-1/50 transition-colors"
+              >
+                <h3 className="h5 mb-3 text-color-1">{benefit.title}</h3>
+                <p className="text-n-4">{benefit.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Section>
 
       {/* Trusted By Section */}
       <div className="mt-20 py-10 bg-n-8/50 backdrop-blur-sm rounded-2xl">
@@ -80,5 +118,8 @@ export default Login;
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-// ... existing code ... 
+export default Login; 

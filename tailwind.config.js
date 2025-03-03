@@ -78,8 +78,10 @@ export default {
       },
       backgroundImage: {
         "radial-gradient": "radial-gradient(var(--tw-gradient-stops))",
-        "conic-gradient":
-          "conic-gradient(from 225deg, #FFC876, #79FFF7, #9F53FF, #FF98E2, #FFC876)",
+        "gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+        "gradient-primary": "linear-gradient(90deg, #00A650 0%, #39B54A 100%)",
+        "gradient-secondary": "linear-gradient(90deg, #00833F 0%, #00A650 100%)",
+        "conic-gradient": "conic-gradient(from 225deg, #00A650, #39B54A, #00833F, #00A650)",
         "benefit-card-1": "url(assets/benefits/card-1.svg)",
         "benefit-card-2": "url(assets/benefits/card-2.svg)",
         "benefit-card-3": "url(assets/benefits/card-3.svg)",
@@ -92,6 +94,7 @@ export default {
         'mercadolibre': '0 0 50px rgba(255, 230, 0, 0.3)',
         'card': '0 8px 16px rgba(0, 0, 0, 0.1)',
         'card-hover': '0 16px 32px rgba(0, 0, 0, 0.2)',
+        'feature': '0 0 30px rgba(0, 166, 80, 0.2)',
       },
       animation: {
         'fadeIn': 'fadeIn 0.5s ease-in forwards',
@@ -99,6 +102,9 @@ export default {
         'float': 'float 3s ease-in-out infinite',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'gradient': 'gradient 6s linear infinite',
+        'gradient-x': 'gradient-x 3s ease infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'morph': 'morph 8s ease infinite',
       },
       keyframes: {
         fadeIn: {
@@ -123,6 +129,22 @@ export default {
             'background-position': 'right center'
           }
         },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-position': '0% 50%'
+          },
+          '50%': {
+            'background-position': '100% 50%'
+          }
+        },
+        morph: {
+          '0%, 100%': {
+            'border-radius': '60% 40% 30% 70%/60% 30% 70% 40%'
+          },
+          '50%': {
+            'border-radius': '30% 60% 70% 40%/50% 60% 30% 60%'
+          }
+        }
       },
     },
   },
@@ -178,6 +200,14 @@ export default {
       addUtilities({
         ".tap-highlight-color": {
           "-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+        },
+        ".bg-size-200": {
+          "background-size": "200% 200%",
+        },
+        ".text-gradient-primary": {
+          "background": "linear-gradient(90deg, #00A650 0%, #39B54A 100%)",
+          "-webkit-background-clip": "text",
+          "-webkit-text-fill-color": "transparent",
         },
       });
     }),
