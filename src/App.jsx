@@ -9,6 +9,9 @@ import PayrollLoan from './pages/PayrollLoan';
 import Login from './pages/Login';
 import CompanyPanel from './pages/CompanyPanel';
 import CompanyRegistration from './pages/CompanyRegistration';
+import Dashboard from './pages/Dashboard';
+import TestData from './pages/TestData';
+import RealtimeTest from './pages/RealtimeTest';
 
 // Componente que se encarga de hacer scroll al inicio en cada cambio de ruta
 const ScrollToTop = () => {
@@ -63,6 +66,9 @@ const AppWrapper = () => {
               <Route path="/payroll-loan" element={<PayrollLoan />} />
               <Route path="/company-panel" element={<CompanyPanel />} />
               <Route path="/register" element={<CompanyRegistration />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/test-data" element={<TestData />} />
+              <Route path="/realtime-test" element={<RealtimeTest />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

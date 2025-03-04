@@ -53,6 +53,7 @@ const Header = () => {
       url: "/register",
       onlyMobile: true
     }
+    // Dashboard no se muestra en navegación, solo accesible por URL directa
   ];
 
   return (
