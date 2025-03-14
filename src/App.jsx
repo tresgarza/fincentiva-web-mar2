@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ButtonGradient from './assets/svg/ButtonGradient';
+import WarningBanner from './components/WarningBanner';
 import Home from './pages/Home';
 import AutoLoan from './pages/AutoLoan';
 import PayrollLoan from './pages/PayrollLoan';
@@ -12,6 +13,7 @@ import CompanyRegistration from './pages/CompanyRegistration';
 import Dashboard from './pages/Dashboard';
 import TestData from './pages/TestData';
 import RealtimeTest from './pages/RealtimeTest';
+import RotatingDashboard from './pages/RotatingDashboard';
 
 // Componente que se encarga de hacer scroll al inicio en cada cambio de ruta
 const ScrollToTop = () => {
@@ -38,6 +40,21 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Componente para renderizar condicionalmente el Header y el WarningBanner
+const ConditionalUI = () => {
+  const { pathname } = useLocation();
+  
+  // Determinar si estamos en una página administrativa o pública
+  const isAdminPage = ['/dashboard', '/test-data', '/realtime-test'].includes(pathname);
+  
+  return (
+    <>
+      {!isAdminPage && <WarningBanner />}
+      {!isAdminPage && <Header />}
+    </>
+  );
+};
+
 const AppWrapper = () => {
   return (
     <Router>
@@ -58,7 +75,7 @@ const AppWrapper = () => {
         {/* Content */}
         <div className="relative z-10">
           <ScrollToTop />
-          <Header />
+          <ConditionalUI />
           <main>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -66,7 +83,7 @@ const AppWrapper = () => {
               <Route path="/payroll-loan" element={<PayrollLoan />} />
               <Route path="/company-panel" element={<CompanyPanel />} />
               <Route path="/register" element={<CompanyRegistration />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<RotatingDashboard />} />
               <Route path="/test-data" element={<TestData />} />
               <Route path="/realtime-test" element={<RealtimeTest />} />
               <Route path="*" element={<Navigate to="/" replace />} />

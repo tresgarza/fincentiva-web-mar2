@@ -23,7 +23,34 @@ ChartJS.register(
   Legend
 );
 
-const Dashboard = () => {
+// Custom hook for responsive design
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+};
+
+const Dashboard = ({ disableNotifications = false }) => {
+  // Add the window size hook
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
+
   // State for all data
   const [recentSimulations, setRecentSimulations] = useState([]);
   const [loanApplications, setLoanApplications] = useState([]);
@@ -38,6 +65,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [newLeadNotification, setNewLeadNotification] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  
+  // Estados para manejar el contacto de clientes
+  const [contactedRecords, setContactedRecords] = useState(() => {
+    // Intentar cargar el estado desde localStorage
+    const savedContacts = localStorage.getItem('dashboardContactedRecords');
+    return savedContacts ? new Set(JSON.parse(savedContacts)) : new Set();
+  });
+  const [contactingRecord, setContactingRecord] = useState(null);
   
   // Referencias para controlar las notificaciones procesadas
   const processedNotificationsRef = useRef(new Set());
@@ -72,31 +107,43 @@ const Dashboard = () => {
     return dates;
   };
 
-  // Function to show a notification when a new lead arrives
-  const showLeadNotification = (lead, type = 'simulación') => {
-    console.log(`Mostrando notificación para nueva ${type}:`, lead);
-    
-    // No mostrar notificación si ya se ha procesado este ID
-    if (processedNotificationsRef.current.has(lead.id)) {
-      console.log(`Notificación para ${lead.id} ya fue mostrada anteriormente, ignorando`);
+  // Función para mostrar notificación de nuevo lead
+  const showLeadNotification = (lead, type) => {
+    // Si las notificaciones están deshabilitadas, no mostramos nada
+    if (disableNotifications) {
+      console.log('Notificaciones deshabilitadas en Dashboard - usando sistema centralizado');
       return;
     }
-    
-    // Marcar esta notificación como procesada
-    processedNotificationsRef.current.add(lead.id);
-    
-    // Reproducir sonido de notificación
+
+    // Verificar si ya hemos procesado esta notificación
+    const notificationId = `${type}_${lead.id}`;
+    if (processedNotificationsRef.current.has(notificationId)) {
+      console.log(`Notificación ${notificationId} ya procesada, ignorando...`);
+      return;
+    }
+
+    // Marcar como procesada
+    processedNotificationsRef.current.add(notificationId);
+
+    // Reproducir sonido
     playNotificationSound();
-    
+
+    // Guardar la notificación para mostrarla
     setNewLeadNotification({
       lead,
       type,
-      timestamp: new Date()
+      timestamp: new Date().getTime()
     });
-    
-    // Auto-dismiss after 10 seconds
+
+    // Auto-cerrar después de 10 segundos
     setTimeout(() => {
-      setNewLeadNotification(null);
+      setNewLeadNotification(prev => {
+        // Solo limpiar si es la misma notificación (para evitar cerrar una nueva)
+        if (prev?.lead?.id === lead.id && prev?.type === type) {
+          return null;
+        }
+        return prev;
+      });
     }, 10000);
   };
   
@@ -106,25 +153,35 @@ const Dashboard = () => {
       // Crear un contexto de audio
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
-      // Crear un oscilador para el sonido
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      // Función para generar un pitido individual
+      const createBeep = (startTime, duration = 0.15) => {
+        // Crear un oscilador para el sonido
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Configurar el sonido (tipo de onda, frecuencia, volumen)
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, startTime); // Nota La (A5)
+        
+        // Ajustar el volumen
+        gainNode.gain.setValueAtTime(0.3, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        // Conectar los nodos
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Iniciar y detener en el tiempo especificado
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
       
-      // Configurar el sonido (tipo de onda, frecuencia, volumen)
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // Nota La (A5)
+      // Crear 3 pitidos espaciados por 0.2 segundos
+      const now = audioContext.currentTime;
+      createBeep(now);
+      createBeep(now + 0.2);
+      createBeep(now + 0.4);
       
-      // Ajustar el volumen
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      // Conectar los nodos
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // Reproducir y detener
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
       console.error('Error al reproducir sonido:', error);
     }
@@ -188,6 +245,9 @@ const Dashboard = () => {
   
   // Función para verificar registros recientes y mostrar notificaciones
   const checkRecentRegistrations = (simulations) => {
+    // Si las notificaciones están deshabilitadas, no hacemos nada
+    if (disableNotifications) return;
+    
     // Solo revisar si hay datos
     if (!simulations || simulations.length === 0) return;
     
@@ -419,6 +479,93 @@ const Dashboard = () => {
     });
   };
 
+  // Función para obtener el texto de visualización del tipo de préstamo
+  const getLoanTypeDisplayText = (record) => {
+    // Si es un plan de tipo efectivo o simulación de efectivo, mostrar "Crédito en Efectivo"
+    if (record.plan_type === 'cash' || record.simulation_type === 'cash') {
+      return "Crédito en Efectivo";
+    }
+    
+    // Para préstamos automotrices
+    if (record.loan_type === 'auto_loan') {
+      return "Auto";
+    }
+    
+    // Para préstamos con garantía
+    if (record.loan_type === 'secured_loan' || record.loan_type === 'car_backed_loan') {
+      return "Garantía";
+    }
+    
+    // Para cualquier otro caso, buscar en los campos normales
+    return record.product_title || 
+           record.product_name || 
+           record.purpose || 
+           'N/A';
+  };
+
+  // Función para generar un enlace de WhatsApp con mensaje personalizado
+  const generateWhatsAppLink = (record, recordType) => {
+    if (!record.phone) return '';
+    
+    // Formatear número telefónico (eliminar espacios, +, etc)
+    let formattedPhone = record.phone.replace(/\s+/g, '');
+    if (!formattedPhone.startsWith('+52') && !formattedPhone.startsWith('52')) {
+      formattedPhone = '52' + formattedPhone;
+    } else if (formattedPhone.startsWith('+')) {
+      formattedPhone = formattedPhone.substring(1);
+    }
+    
+    // Crear un mensaje personalizado basado en el tipo de registro
+    let message = '';
+    if (recordType === 'simulation') {
+      // Obtener el tipo de préstamo para mostrar en el mensaje
+      const productType = getLoanTypeDisplayText(record).toLowerCase();
+      
+      message = `¡Hola ${record.name}! Soy un asesor de Fincentiva. Veo que realizaste una simulación de ${productType} por ${formatCurrency(record.loan_amount)} a ${record.term_months} meses. ¿Te gustaría que te explique más detalles sobre esta opción o explorar otras alternativas que se ajusten mejor a tus necesidades?`;
+    } else if (recordType === 'application') {
+      // Obtener el tipo de préstamo para mostrar en el mensaje
+      const productType = getLoanTypeDisplayText(record).toLowerCase();
+      
+      message = `¡Hola ${record.name}! Soy un asesor de Fincentiva. Recibimos tu solicitud de ${productType} por ${formatCurrency(record.loan_amount)} a ${record.term_months} meses. ¿Tienes un momento para hablar sobre los siguientes pasos del proceso?`;
+    }
+    
+    // Codificar el mensaje para URL
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Construir el enlace
+    return `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+  };
+  
+  // Función para manejar el clic en el botón de contacto
+  const handleContactClick = (recordId, recordType, whatsappLink) => {
+    if (contactedRecords.has(recordId) || contactingRecord === recordId) {
+      return; // Evitar múltiples clics
+    }
+    
+    // Marcar el registro como "en proceso de contacto"
+    setContactingRecord(recordId);
+    
+    // Abrir WhatsApp en una nueva pestaña
+    window.open(whatsappLink, '_blank');
+    
+    // Después de 3 segundos, marcar como contactado
+    setTimeout(() => {
+      setContactedRecords(prev => {
+        const newSet = new Set(prev);
+        newSet.add(recordId);
+        return newSet;
+      });
+      
+      // Limpiar el estado de "contactando"
+      setContactingRecord(null);
+    }, 3000);
+  };
+
+  // Guardar contactedRecords en localStorage cuando cambie
+  useEffect(() => {
+    localStorage.setItem('dashboardContactedRecords', JSON.stringify([...contactedRecords]));
+  }, [contactedRecords]);
+
   // Chart configurations
   const simulationCountsChartOptions = {
     responsive: true,
@@ -525,241 +672,334 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="pt-[4.75rem] lg:pt-[5.25rem] min-h-screen bg-n-8">
-      <div className="container mx-auto px-4 py-8">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl font-bold text-center mb-8 text-white"
-        >
-          Dashboard en Tiempo Real
-          <span className="text-xs block text-gray-400 mt-2">
-            Última actualización: {lastUpdated.toLocaleTimeString()}
-          </span>
-        </motion.h1>
-        
-        {loading ? (
-          <div className="flex justify-center items-center min-h-[300px]">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+    <div className="min-h-screen bg-n-8 text-white p-2 md:p-4 lg:p-6">
+      <div className="container mx-auto">
+        {/* Dashboard Header */}
+        <div className="mb-4 md:mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1">Dashboard de Crédito Automotriz</h1>
+            <p className="text-gray-400 text-xs md:text-sm">
+              Última actualización: {new Date(lastUpdated).toLocaleTimeString()}
+            </p>
           </div>
-        ) : (
-          <div className="flex flex-col gap-8">
-            {/* Charts Section - Placed at the top */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Simulation Counts Chart */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="bg-n-7 rounded-2xl p-6 shadow-lg"
-              >
-                <div className="h-[300px]">
-                  <Bar options={simulationCountsChartOptions} data={simulationCountsChartData} />
-                </div>
-              </motion.div>
-              
-              {/* Loan Amounts Chart */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="bg-n-7 rounded-2xl p-6 shadow-lg"
-              >
-                <div className="h-[300px]">
-                  <Bar options={loanAmountsChartOptions} data={loanAmountsChartData} />
-                </div>
-              </motion.div>
-            </div>
-            
-            {/* Tables Section - Placed below the charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Simulations Panel */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="bg-n-7 rounded-2xl p-4 shadow-lg h-[500px] overflow-hidden"
-              >
-                <h2 className="text-2xl font-semibold mb-3 text-white">Últimas 30 Simulaciones</h2>
-                <div className="overflow-auto h-[calc(100%-40px)]">
-                  <table className="min-w-full bg-transparent">
-                    <thead className="sticky top-0 bg-n-7 z-10">
-                      <tr className="border-b border-n-6">
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Nombre</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Teléfono</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Tipo</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Monto</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Plazo</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentSimulations.map((simulation) => (
-                        <tr key={simulation.id} className="border-b border-n-6 hover:bg-n-6 transition-colors">
-                          <td className="py-2 px-2 text-white text-sm whitespace-nowrap overflow-hidden text-ellipsis">{`${simulation.name} ${simulation.last_name}`}</td>
-                          <td className="py-2 px-2 text-white text-sm">{simulation.phone}</td>
-                          <td className="py-2 px-2 text-white text-sm">{simulation.loan_type === 'auto_loan' ? 'Auto' : 'Garantía'}</td>
-                          <td className="py-2 px-2 text-white text-sm">{formatCurrency(simulation.loan_amount)}</td>
-                          <td className="py-2 px-2 text-white text-sm">{simulation.term_months} meses</td>
-                          <td className="py-2 px-2 text-white text-sm">{formatDate(simulation.created_at)}</td>
-                        </tr>
-                      ))}
-                      {recentSimulations.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="py-4 text-center text-gray-400">No hay simulaciones disponibles</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-              
-              {/* Loan Applications Panel */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="bg-n-7 rounded-2xl p-4 shadow-lg h-[500px] overflow-hidden"
-              >
-                <h2 className="text-2xl font-semibold mb-3 text-white">Últimas 20 Solicitudes de Préstamo</h2>
-                <div className="overflow-auto h-[calc(100%-40px)]">
-                  <table className="min-w-full bg-transparent">
-                    <thead className="sticky top-0 bg-n-7 z-10">
-                      <tr className="border-b border-n-6">
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Nombre</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Teléfono</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Tipo</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Monto</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Plazo</th>
-                        <th className="py-2 px-2 text-left text-gray-300 text-sm">Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loanApplications.map((application) => (
-                        <tr key={application.id} className="border-b border-n-6 hover:bg-n-6 transition-colors">
-                          <td className="py-2 px-2 text-white text-sm whitespace-nowrap overflow-hidden text-ellipsis">{`${application.name} ${application.last_name}`}</td>
-                          <td className="py-2 px-2 text-white text-sm">{application.phone}</td>
-                          <td className="py-2 px-2 text-white text-sm">{application.loan_type === 'auto_loan' ? 'Auto' : 'Garantía'}</td>
-                          <td className="py-2 px-2 text-white text-sm">{formatCurrency(application.loan_amount)}</td>
-                          <td className="py-2 px-2 text-white text-sm">{application.term_months} meses</td>
-                          <td className="py-2 px-2 text-white text-sm">{formatDate(application.created_at)}</td>
-                        </tr>
-                      ))}
-                      {loanApplications.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="py-4 text-center text-gray-400">No hay solicitudes disponibles</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        )}
-        
-        {/* New Lead Notification Popup */}
-        <AnimatePresence>
-          {newLeadNotification && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed inset-0 flex items-center justify-center z-50"
+          
+          <div className="mt-2 md:mt-0">
+            <button 
+              onClick={() => fetchInitialData()}
+              className="px-3 py-1.5 bg-n-7 hover:bg-n-6 rounded-lg text-xs md:text-sm flex items-center gap-2 transition-colors"
             >
-              {/* Overlay semitransparente */}
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setNewLeadNotification(null)}></div>
-              
-              {/* Contenido de la notificación */}
-              <div className="relative z-10 max-w-2xl w-full mx-4 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] rounded-xl shadow-2xl overflow-hidden"
-                   style={{ boxShadow: '0 0 40px rgba(51, 255, 87, 0.4)' }}
-              >
-                <div className="relative p-6">
-                  <button
-                    onClick={() => setNewLeadNotification(null)}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                  
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    {/* Alert Icon */}
-                    <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-[#33FF57]/20 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#33FF57" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    {/* Alert Content */}
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-[#33FF57] mb-3">
-                        ¡Nueva {newLeadNotification.type === 'solicitud' ? 'solicitud de préstamo' : 'simulación'} recibida!
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-gray-400 text-sm">Nombre:</p>
-                          <p className="text-white font-medium">{`${newLeadNotification.lead.name} ${newLeadNotification.lead.last_name}`}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Teléfono:</p>
-                          <p className="text-white font-medium">{newLeadNotification.lead.phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Tipo de Préstamo:</p>
-                          <p className="text-white font-medium">{newLeadNotification.lead.loan_type === 'auto_loan' ? 'Crédito Automotriz' : 'Préstamo con Garantía'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Monto:</p>
-                          <p className="text-white font-medium">{formatCurrency(newLeadNotification.lead.loan_amount)}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Plazo:</p>
-                          <p className="text-white font-medium">{newLeadNotification.lead.term_months} meses</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Pago Mensual:</p>
-                          <p className="text-white font-medium">{formatCurrency(newLeadNotification.lead.monthly_payment)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-400">
-                          Recibido: {new Date(newLeadNotification.timestamp).toLocaleTimeString()}
-                        </p>
-                        
-                        <button 
-                          onClick={() => setNewLeadNotification(null)}
-                          className="px-4 py-2 bg-[#33FF57] text-black text-sm font-medium rounded-lg hover:bg-[#2be04e] transition-colors"
-                        >
-                          Entendido
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar for auto-dismiss */}
-                <div className="h-1 bg-[#33FF57]/20">
-                  <motion.div 
-                    initial={{ width: '100%' }}
-                    animate={{ width: '0%' }}
-                    transition={{ duration: 10, ease: 'linear' }}
-                    className="h-full bg-[#33FF57]"
-                  />
-                </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+              Actualizar Datos
+            </button>
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Charts Section */}
+          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* Daily Simulations Chart */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-n-7 rounded-xl p-3 md:p-4 shadow-lg overflow-hidden"
+            >
+              <h2 className="text-base md:text-lg font-semibold mb-3">Simulaciones Diarias (Últimos 10 días)</h2>
+              <div className="h-[200px] md:h-[250px]">
+                <Bar
+                  data={{
+                    labels: dailySimulationCounts.labels,
+                    datasets: [
+                      {
+                        label: 'Simulaciones',
+                        data: dailySimulationCounts.data,
+                        backgroundColor: 'rgba(51, 255, 87, 0.6)',
+                        borderColor: 'rgba(51, 255, 87, 1)',
+                        borderWidth: 1,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          precision: 0,
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          font: {
+                            size: isMobile ? 10 : 12,
+                          },
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)',
+                        },
+                      },
+                      x: {
+                        ticks: {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          font: {
+                            size: isMobile ? 8 : 10,
+                          },
+                        },
+                        grid: {
+                          display: false,
+                        },
+                      },
+                    },
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                          size: 14,
+                        },
+                        bodyFont: {
+                          size: 12,
+                        },
+                      },
+                    },
+                  }}
+                />
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+            
+            {/* Daily Loan Amount Chart */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-n-7 rounded-xl p-3 md:p-4 shadow-lg overflow-hidden"
+            >
+              <h2 className="text-base md:text-lg font-semibold mb-3">Montos Diarios (Últimos 10 días)</h2>
+              <div className="h-[200px] md:h-[250px]">
+                <Bar
+                  data={{
+                    labels: dailyLoanAmounts.labels,
+                    datasets: [
+                      {
+                        label: 'Monto Total',
+                        data: dailyLoanAmounts.data,
+                        backgroundColor: 'rgba(64, 224, 208, 0.6)',
+                        borderColor: 'rgba(64, 224, 208, 1)',
+                        borderWidth: 1,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          callback: function(value) {
+                            return formatCurrency(value).replace('$', '');
+                          },
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          font: {
+                            size: isMobile ? 10 : 12,
+                          },
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)',
+                        },
+                      },
+                      x: {
+                        ticks: {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          font: {
+                            size: isMobile ? 8 : 10,
+                          },
+                        },
+                        grid: {
+                          display: false,
+                        },
+                      },
+                    },
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                          label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                              label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                              label += formatCurrency(context.parsed.y);
+                            }
+                            return label;
+                          }
+                        },
+                        titleFont: {
+                          size: 14,
+                        },
+                        bodyFont: {
+                          size: 12,
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </motion.div>
+          </div>
+          
+          {/* Recent Simulations Panel */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-n-7 rounded-xl p-3 md:p-4 shadow-lg lg:col-span-3 overflow-hidden"
+          >
+            <h2 className="text-base md:text-lg lg:text-xl font-semibold mb-3">Últimas 20 Simulaciones</h2>
+            <div className="overflow-auto max-h-[500px]">
+              <table className="min-w-full bg-transparent">
+                <thead className="sticky top-0 bg-n-8 z-10">
+                  <tr>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Nombre</th>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Teléfono</th>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Tipo</th>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Monto</th>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Plazo</th>
+                    <th className="py-2 px-2 text-left text-gray-300 text-xs md:text-sm">Fecha</th>
+                    <th className="py-2 px-2 text-center text-gray-300 text-xs md:text-sm">Contactar</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-n-6">
+                  {recentSimulations.map((simulation) => (
+                    <tr key={simulation.id} className="hover:bg-n-6 transition-colors">
+                      <td className="py-2 px-2 text-white text-xs md:text-sm whitespace-nowrap overflow-hidden text-ellipsis">{`${simulation.name} ${simulation.last_name}`}</td>
+                      <td className="py-2 px-2 text-white text-xs md:text-sm">{simulation.phone}</td>
+                      <td className="py-2 px-2 text-white text-xs md:text-sm">{getLoanTypeDisplayText(simulation)}</td>
+                      <td className="py-2 px-2 text-white text-xs md:text-sm">{formatCurrency(simulation.loan_amount)}</td>
+                      <td className="py-2 px-2 text-white text-xs md:text-sm">{simulation.term_months} meses</td>
+                      <td className="py-2 px-2 text-white text-xs md:text-sm">{formatDate(simulation.created_at)}</td>
+                      <td className="py-2 px-2 text-center">
+                        {simulation.phone ? (
+                          <button
+                            className={`px-2 md:px-3 py-1 rounded text-xs font-medium transition-colors ${
+                              contactedRecords.has(`simulation-${simulation.id}`)
+                                ? 'bg-gray-600 text-gray-300 cursor-default'
+                                : contactingRecord === `simulation-${simulation.id}`
+                                  ? 'bg-yellow-600 text-white cursor-wait'
+                                  : 'bg-green-600 hover:bg-green-700 text-white'
+                            }`}
+                            onClick={() => {
+                              if (!contactedRecords.has(`simulation-${simulation.id}`) && 
+                                  contactingRecord !== `simulation-${simulation.id}`) {
+                                const whatsappLink = generateWhatsAppLink(simulation, 'simulation');
+                                handleContactClick(`simulation-${simulation.id}`, 'simulation', whatsappLink);
+                              }
+                            }}
+                            disabled={contactedRecords.has(`simulation-${simulation.id}`)}
+                          >
+                            {contactedRecords.has(`simulation-${simulation.id}`)
+                              ? 'Contactado'
+                              : contactingRecord === `simulation-${simulation.id}`
+                                ? 'Redirigiendo...'
+                                : 'Contactar'}
+                          </button>
+                        ) : (
+                          <span className="text-gray-500 text-xs">No disponible</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {recentSimulations.length === 0 && (
+                    <tr>
+                      <td colSpan="7" className="py-4 text-center text-gray-400 text-xs md:text-sm">No hay simulaciones disponibles</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        </div>
       </div>
+      
+      {/* Lead Notification */}
+      <AnimatePresence>
+        {newLeadNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 500, damping: 50 }}
+            className="fixed bottom-4 right-4 z-50 max-w-xs md:max-w-sm bg-gradient-to-r from-[#1e1e1e] to-[#2d2d2d] rounded-lg shadow-xl overflow-hidden border border-n-6"
+            style={{ boxShadow: '0 0 20px rgba(51, 255, 87, 0.2)' }}
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-[#33FF57]/20 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#33FF57]" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-sm md:text-base font-semibold text-[#33FF57]">
+                  {newLeadNotification.title}
+                </h3>
+                <button
+                  className="ml-auto text-gray-400 hover:text-white"
+                  onClick={() => setNewLeadNotification(null)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs md:text-sm mb-3">
+                <div>
+                  <p className="text-gray-400 text-xs">Nombre:</p>
+                  <p className="text-white">{newLeadNotification.clientName}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs">Monto:</p>
+                  <p className="text-white">{formatCurrency(newLeadNotification.amount)}</p>
+                </div>
+                
+                <div>
+                  <p className="text-gray-400 text-xs">Tipo de Préstamo:</p>
+                  <p className="text-white">{getLoanTypeDisplayText(newLeadNotification.lead)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs">Fecha:</p>
+                  <p className="text-white">{formatDate(newLeadNotification.timestamp)}</p>
+                </div>
+              </div>
+              
+              <div className="mt-2 flex justify-end">
+                <button
+                  className="text-xs font-medium px-3 py-1 bg-[#33FF57] text-black rounded hover:bg-[#2be04e] transition-colors"
+                  onClick={() => setNewLeadNotification(null)}
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+            
+            {/* Auto-dismiss progress bar */}
+            <motion.div 
+              initial={{ width: '100%' }}
+              animate={{ width: '0%' }}
+              transition={{ duration: 8, ease: 'linear' }}
+              className="h-1 bg-[#33FF57]"
+              onAnimationComplete={() => setNewLeadNotification(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

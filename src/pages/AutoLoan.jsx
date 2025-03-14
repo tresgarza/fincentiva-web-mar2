@@ -95,6 +95,27 @@ const AutoLoan = () => {
   // Add state for loading application submission
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
 
+  // Dentro del componente AutoLoan, justo después de los demás estados:
+  const [paymentDetails, setPaymentDetails] = useState({
+    interestPayment: 0,
+    gpsPayment: 0,
+    commissionTotal: 0
+  });
+
+  // Agregar efecto para actualizar el enganche cuando cambia el valor del auto
+  useEffect(() => {
+    // Cuando cambia el precio del auto, actualizamos el enganche para mantener el 30%
+    const minDownPayment = carPrice * 0.3;
+    // Solo actualizamos el enganche si es menor que el mínimo requerido
+    if (downPayment < minDownPayment) {
+      setDownPayment(minDownPayment);
+      setDownPaymentInput(formatInputCurrency(minDownPayment.toString()));
+    }
+    
+    // Marcamos los cambios como pendientes
+    setHasPendingChanges(true);
+  }, [carPrice]);
+
   // Add effect to reset showSimulation when loanType changes
   useEffect(() => {
     setShowSimulation(false);
@@ -251,14 +272,25 @@ const AutoLoan = () => {
         const formattedLoanAmount = formatCurrency(loanAmount);
         const formattedMonthlyPayment = formatCurrency(monthlyPayment);
         
-        const downPayment = loanType === 'autoLoan' ? carPrice - loanAmount : 0;
-        const formattedDownPayment = formatCurrency(downPayment);
+        // Corregir el cálculo del enganche para crédito automotriz
+        const downPaymentAmount = loanType === 'auto_loan' ? downPayment : 0;
+        const formattedDownPayment = formatCurrency(downPaymentAmount);
+        
+        console.log("Preparando mensaje WhatsApp con:", {
+          loanType,
+          carPrice,
+          downPayment,
+          downPaymentAmount,
+          loanAmount,
+          formattedDownPayment
+        });
         
         // Mensaje de WhatsApp personalizado según el tipo de préstamo
         let introMessage = '';
         let detailsTitle = '';
         let messageContent = '';
         let closingMessage = '';
+        let disclaimerMessage = '';
         
         if (loanType === 'auto_loan') {
           // Mensaje para Crédito Automotriz
@@ -270,6 +302,7 @@ const AutoLoan = () => {
 • Plazo: ${termMonths} meses
 • Pago mensual: ${formattedMonthlyPayment}`;
           closingMessage = 'Me gustaría conocer los requisitos y el proceso para obtener el crédito automotriz.';
+          disclaimerMessage = 'Estoy consciente de que esta simulación es un estimado y no incluye el seguro del auto, el cual también deberé contratar.';
         } else if (loanType === 'car_backed_loan') {
           // Mensaje para Préstamo por Auto
           introMessage = `Hola, soy *${contactInfo.name} ${contactInfo.lastName}* y estoy interesado en un *Préstamo por Auto*.`;
@@ -280,6 +313,7 @@ const AutoLoan = () => {
 • Plazo: ${termMonths} meses
 • Pago mensual: ${formattedMonthlyPayment}`;
           closingMessage = 'Me gustaría conocer los requisitos y el proceso para obtener mi Préstamo por Auto.';
+          disclaimerMessage = 'Entiendo que esta simulación es solo un estimado y podría variar al momento de la aprobación.';
         }
         
         const whatsappMessage = `${introMessage}
@@ -291,7 +325,7 @@ ${messageContent}
 • Tel: ${contactInfo.phone}
 • Email: ${contactInfo.email}
 
-${closingMessage} Gracias.`;
+${closingMessage} ${disclaimerMessage} Gracias.`;
         
         // Secuencia de pasos con tiempos
         setTimeout(() => {
@@ -342,7 +376,14 @@ ${closingMessage} Gracias.`;
     }
     
     if (loanType === 'autoLoan') {
-      // Para Crédito Automotriz
+      // Para Crédito Automotriz - Asegurar que el downPayment se usa correctamente
+      console.log("Enviando solicitud de crédito automotriz con:", {
+        carPrice,
+        downPayment,
+        loanAmount,
+        termMonths,
+        monthlyPayment
+      });
       await saveSimulation('auto_loan', carPrice, loanAmount, termMonths, monthlyPayment, true);
     } else if (loanType === 'carBackedLoan') {
       // Para Préstamo por Auto
@@ -350,6 +391,12 @@ ${closingMessage} Gracias.`;
         showNotification('Por favor ingresa la marca y modelo del auto', 'error');
         return;
       }
+      console.log("Enviando solicitud de préstamo por auto con:", {
+        carBackedLoanCarPrice,
+        carBackedLoanAmount,
+        carBackedLoanTermMonths,
+        carBackedLoanMonthlyPayment
+      });
       await saveSimulation('car_backed_loan', carBackedLoanCarPrice, carBackedLoanAmount, carBackedLoanTermMonths, carBackedLoanMonthlyPayment, true);
     }
   };
@@ -377,11 +424,25 @@ ${closingMessage} Gracias.`;
     }).format(value);
   };
 
-  // Función para calcular el pago mensual
+  // Modificación en la constante calculateMonthlyPayment para distinguir entre comisión y GPS
   const calculateMonthlyPayment = (creditAmount, months) => {
-    if (months <= 0) return 0;
-    const payment = (creditAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -months));
-    return payment + gpsRent;
+    if (months <= 0) return { total: 0, interestPayment: 0, gpsPayment: 0, commissionTotal: 0 };
+    
+    // Calcula la comisión por apertura
+    const commissionTotal = creditAmount * commissionRate;
+    
+    // Calcula el pago de interés (principal + interés)
+    const interestPayment = (creditAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -months));
+    
+    // Pago total mensual
+    const total = interestPayment + gpsRent;
+    
+    return { 
+      total, 
+      interestPayment, 
+      gpsPayment: gpsRent,
+      commissionTotal 
+    };
   };
 
   // Manejadores de eventos para el precio del auto
@@ -389,7 +450,15 @@ ${closingMessage} Gracias.`;
     const value = Number(e.target.value);
     setCarPrice(value);
     setCarPriceInput(formatInputCurrency(value.toString()));
-    // Mark as pending instead of calculating immediately
+    
+    // Actualizamos el enganche mínimo automáticamente (30% del valor del auto)
+    const minDownPayment = value * 0.3;
+    if (downPayment < minDownPayment) {
+      setDownPayment(minDownPayment);
+      setDownPaymentInput(formatInputCurrency(minDownPayment.toString()));
+    }
+    
+    // Marcar como pendiente
     setHasPendingChanges(true);
   };
 
@@ -536,7 +605,7 @@ ${closingMessage} Gracias.`;
     }
   ];
 
-  // Modificar las funciones existentes para guardar simulaciones
+  // Actualizar la función updateCalculations para manejar los nuevos valores desglosados
   const updateCalculations = async (price, payment, months) => {
     setIsCalculating(true);
     
@@ -552,8 +621,11 @@ ${closingMessage} Gracias.`;
     const creditWithCommission = loan / (1 - commissionRate);
     
     setLoanAmount(loan);
-    const calculatedPayment = calculateMonthlyPayment(creditWithCommission, months);
-    setMonthlyPayment(calculatedPayment);
+    const paymentDetails = calculateMonthlyPayment(creditWithCommission, months);
+    setMonthlyPayment(paymentDetails.total);
+    
+    // Aquí podrías guardar los detalles desglosados en el estado si lo necesitas
+    
     setIsCalculating(false);
   };
 
@@ -577,15 +649,49 @@ ${closingMessage} Gracias.`;
       
       const loan = carPrice - validDownPayment;
       const creditWithCommission = loan / (1 - commissionRate);
-      const calculatedPayment = calculateMonthlyPayment(creditWithCommission, termMonths);
       
       setLoanAmount(loan);
-      setMonthlyPayment(calculatedPayment);
+      const paymentDetails = calculateMonthlyPayment(creditWithCommission, termMonths);
+      setMonthlyPayment(paymentDetails.total);
       
-      await saveSimulation('auto_loan', carPrice, loan, termMonths, calculatedPayment);
+      // Store payment details in state for display
+      setPaymentDetails({
+        interestPayment: paymentDetails.interestPayment,
+        gpsPayment: paymentDetails.gpsPayment,
+        commissionTotal: paymentDetails.commissionTotal
+      });
+      
+      // Guardar animación del pago
+      const startValue = 0;
+      const endValue = paymentDetails.total;
+      const duration = 1500;
+      const startTime = Date.now();
+      
+      const animateValue = () => {
+        const elapsedTime = Date.now() - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const currentValue = startValue + progress * (endValue - startValue);
+        setAnimatedPayment(currentValue);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animateValue);
+        }
+      };
+      
+      requestAnimationFrame(animateValue);
+      
+      // Guardar en Supabase
+      if (appConfig.persistSimulations) {
+        await saveSimulation('autoLoan', carPrice, loan, termMonths, paymentDetails.total);
+      }
+      
+      setShowSimulation(true);
+      setHasPendingChanges(false);
+      
+      showNotification('Simulación completada con éxito', 'success');
     } catch (error) {
-      console.error("Error in auto loan simulation:", error);
-      showNotification('Error al simular. Por favor intenta de nuevo.', 'error');
+      console.error('Error en la simulación:', error);
+      showNotification('Hubo un error al realizar la simulación', 'error');
     } finally {
       setIsCalculating(false);
     }
@@ -790,16 +896,16 @@ ${closingMessage} Gracias.`;
   return (
     <div className="pt-[4.75rem] lg:pt-[5.25rem] overflow-hidden">
       {/* Hero Section */}
-      <Section className="pt-10 md:pt-16 lg:pt-20">
-        <div className="container relative">
+      <Section className="pt-6 md:pt-10 lg:pt-20">
+        <div className="container px-4 md:px-6 relative">
           <div className="relative z-1">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="h1 mb-6 text-center"
+              className="h1 mb-4 md:mb-6 text-center text-2xl md:text-4xl lg:text-5xl"
             >
-              Tu auto ideal está <br />
+              Tu auto ideal está <br className="md:hidden" />
               <span className="text-gradient-primary">más cerca de lo que crees</span>
             </motion.h1>
             
@@ -807,13 +913,13 @@ ${closingMessage} Gracias.`;
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="body-1 mb-8 text-n-4 text-center max-w-3xl mx-auto"
+              className="body-1 mb-6 md:mb-8 text-n-4 text-center max-w-3xl mx-auto text-sm md:text-base"
             >
               Financiamiento flexible y personalizado para que manejes el auto que deseas.
               Sin complicaciones, sin letras pequeñas.
             </motion.p>
 
-            <Generating className="max-w-[940px] mx-auto mb-20" type="autoLoan" />
+            <Generating className="max-w-[940px] mx-auto mb-12 md:mb-20" type="autoLoan" />
           </div>
 
           {/* Background Effects */}
@@ -832,9 +938,9 @@ ${closingMessage} Gracias.`;
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 20 }}
             exit={{ opacity: 0, y: -50 }}
-            className={`fixed top-0 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg ${
+            className={`fixed top-0 left-1/2 transform -translate-x-1/2 z-50 px-4 md:px-6 py-3 rounded-lg shadow-lg ${
               notification.type === 'success' ? 'bg-[#33FF57]/90' : 'bg-red-500/90'
-            } text-black backdrop-blur-sm`}
+            } text-black backdrop-blur-sm max-w-[90%] md:max-w-md text-center text-sm md:text-base`}
           >
             {notification.message}
           </motion.div>
@@ -842,114 +948,114 @@ ${closingMessage} Gracias.`;
       </AnimatePresence>
 
       {/* Simulator Section */}
-      <Section id="simulator-section" className="pt-10">
-        <div className="container">
+      <Section id="simulator-section" className="pt-6 md:pt-10">
+        <div className="container px-4 md:px-6">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="relative p-8 rounded-[2rem] border border-n-6 bg-n-8/80 backdrop-blur-sm overflow-hidden"
+            className="relative p-4 md:p-8 rounded-xl md:rounded-[2rem] border border-n-6 bg-n-8/80 backdrop-blur-sm overflow-hidden"
           >
             <div className="relative z-1">
               <motion.h2 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="h2 mb-10 text-center"
+                className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-10 text-center"
               >
                 Simula tu Crédito <span className="text-color-1 inline-block">en segundos</span>
               </motion.h2>
 
-              <div className="flex justify-center mb-8">
+              <div className="flex justify-center mb-6 md:mb-8">
                 <button
                   onClick={() => handleLoanTypeChange('autoLoan')}
-                  className={`p-2 rounded-xl border ${
+                  className={`p-2 rounded-xl border text-sm md:text-base ${
                     loanType === 'autoLoan' ? 'bg-color-1 border-color-1 text-black font-semibold shadow-md' : 'bg-n-6 border-n-6 text-n-3 hover:bg-n-5 hover:border-n-5'
-                  } transition-all duration-300`}
+                  } transition-all duration-300 flex-1 mx-1 md:flex-none md:mx-0`}
                 >
                   Crédito Automotriz
                 </button>
                 <button
                   onClick={() => handleLoanTypeChange('carBackedLoan')}
-                  className={`p-2 rounded-xl border ml-4 ${
+                  className={`p-2 rounded-xl border text-sm md:text-base ml-1 md:ml-4 ${
                     loanType === 'carBackedLoan' ? 'bg-color-1 border-color-1 text-black font-semibold shadow-md' : 'bg-n-6 border-n-6 text-n-3 hover:bg-n-5 hover:border-n-5'
-                  } transition-all duration-300`}
+                  } transition-all duration-300 flex-1 mx-1 md:flex-none md:mx-0`}
                 >
                   Préstamo por tu Auto
                 </button>
               </div>
 
               {/* Añadimos solo el ID simulator a la estructura original */}
-              <div id="simulator" className="simulator-section grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div id="simulator" className="simulator-section grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10">
                 {loanType === 'autoLoan' ? (
                   <>
-                    <div className="bg-n-7/50 rounded-xl p-6 backdrop-blur-sm border border-n-6">
-                      <div className="mb-8">
-                        <h5 className="text-n-1 font-semibold mb-4">Información de Contacto</h5>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-n-7/50 rounded-xl p-4 md:p-6 backdrop-blur-sm border border-n-6">
+                      <div className="mb-6 md:mb-8">
+                        <h5 className="text-n-1 font-semibold mb-3 md:mb-4 text-base md:text-lg">Información de Contacto</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                           <div>
-                            <label className="text-n-3 block mb-2">Nombre</label>
+                            <label className="text-n-3 block mb-1 md:mb-2 text-sm">Nombre</label>
                             <input
                               type="text"
                               name="name"
                               value={contactInfo.name}
                               onChange={handleContactInfoChange}
-                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 text-sm md:text-base border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               placeholder="Tu nombre"
                             />
                           </div>
                           <div>
-                            <label className="text-n-3 block mb-2">Apellido</label>
+                            <label className="text-n-3 block mb-1 md:mb-2 text-sm">Apellido</label>
                             <input
                               type="text"
                               name="lastName"
                               value={contactInfo.lastName}
                               onChange={handleContactInfoChange}
-                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 text-sm md:text-base border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               placeholder="Tu apellido"
                             />
                           </div>
                           <div>
-                            <label className="text-n-3 block mb-2">Correo Electrónico</label>
+                            <label className="text-n-3 block mb-1 md:mb-2 text-sm">Correo Electrónico</label>
                             <input
                               type="email"
                               name="email"
                               value={contactInfo.email}
                               onChange={handleContactInfoChange}
-                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 text-sm md:text-base border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               placeholder="tucorreo@ejemplo.com"
                             />
                           </div>
                           <div>
-                            <label className="text-n-3 block mb-2">Teléfono (10 dígitos)</label>
+                            <label className="text-n-3 block mb-1 md:mb-2 text-sm">Teléfono (10 dígitos)</label>
                             <input
                               type="tel"
                               name="phone"
                               value={contactInfo.phone}
                               onChange={handleContactInfoChange}
-                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                              className="w-full bg-n-6 rounded-lg px-3 py-2 text-n-1 text-sm md:text-base border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               placeholder="1234567890"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="mb-8">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-2">
-                            <RiMoneyDollarCircleLine className="text-color-1 text-xl" />
-                            <label className="text-n-3">Valor del Auto</label>
+                      <div className="mb-6 md:mb-8">
+                        <div className="flex flex-wrap justify-between items-start mb-2">
+                          <div className="flex items-center gap-2 mb-2 md:mb-0">
+                            <RiMoneyDollarCircleLine className="text-color-1 text-lg md:text-xl" />
+                            <label className="text-n-3 text-sm md:text-base">Valor del Auto</label>
                           </div>
                           <div className="relative">
                             <div className="flex items-center">
-                              <span className="text-n-3 mr-1">$</span>
+                              <span className="text-n-3 mr-1 text-sm md:text-base">$</span>
                               <input
                                 type="text"
                                 value={carPriceInput}
                                 onChange={handleCarPriceInputChange}
                                 onBlur={handleCarPriceInputBlur}
-                                className="w-28 bg-n-6 rounded-lg px-2 py-1 text-right text-n-1 font-medium border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                                className="w-24 md:w-28 bg-n-6 rounded-lg px-2 py-1 text-right text-n-1 text-sm md:text-base font-medium border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               />
                             </div>
                             <div className="text-xs text-n-4 text-right mt-1">
@@ -975,12 +1081,12 @@ ${closingMessage} Gracias.`;
                         </div>
                       </div>
 
-                      <div className="mb-8">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-2">
-                            <RiMoneyDollarCircleLine className="text-color-1 text-xl" />
+                      <div className="mb-6 md:mb-8">
+                        <div className="flex flex-wrap justify-between items-start mb-2">
+                          <div className="flex items-center gap-2 mb-2 md:mb-0">
+                            <RiMoneyDollarCircleLine className="text-color-1 text-lg md:text-xl" />
                             <div className="flex items-center group">
-                              <label className="text-n-3 mr-1">Enganche</label>
+                              <label className="text-n-3 mr-1 text-sm md:text-base">Enganche</label>
                               <div 
                                 className="text-n-3 cursor-help relative"
                                 onMouseEnter={() => setShowTip(true)}
@@ -1006,13 +1112,13 @@ ${closingMessage} Gracias.`;
                           </div>
                           <div className="relative">
                             <div className="flex items-center">
-                              <span className="text-n-3 mr-1">$</span>
+                              <span className="text-n-3 mr-1 text-sm md:text-base">$</span>
                               <input
                                 type="text"
                                 value={downPaymentInput}
                                 onChange={handleDownPaymentInputChange}
                                 onBlur={handleDownPaymentInputBlur}
-                                className="w-28 bg-n-6 rounded-lg px-2 py-1 text-right text-n-1 font-medium border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
+                                className="w-24 md:w-28 bg-n-6 rounded-lg px-2 py-1 text-right text-n-1 text-sm md:text-base font-medium border border-n-6 focus:border-color-1 outline-none transition-colors duration-300"
                               />
                             </div>
                             <div className="text-xs text-n-4 text-right mt-1">
@@ -1031,17 +1137,17 @@ ${closingMessage} Gracias.`;
                         </div>
                       </div>
 
-                      <div className="mb-6">
+                      <div className="mb-6 md:mb-8">
                         <div className="flex items-center gap-2 mb-4">
-                          <FaClock className="text-color-1 text-xl" />
-                          <label className="text-n-3">Plazo (meses)</label>
+                          <FaClock className="text-color-1 text-lg md:text-xl" />
+                          <label className="text-n-3 text-sm md:text-base">Plazo (meses)</label>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
                           {[6, 12, 18, 24, 36, 48].map((months) => (
                             <motion.button
                               key={months}
                               onClick={() => handleTermChange(months)}
-                              className={`p-2 rounded-xl border ${
+                              className={`p-2 rounded-xl border text-sm md:text-base ${
                                 termMonths === months
                                   ? 'bg-color-1 border-color-1 text-black font-semibold shadow-md'
                                   : 'bg-n-6 border-n-6 text-n-3 hover:bg-n-5 hover:border-n-5'
@@ -1056,7 +1162,7 @@ ${closingMessage} Gracias.`;
                       </div>
                     </div>
 
-                    <div className="bg-n-7/50 rounded-xl p-6 backdrop-blur-sm border border-n-6">
+                    <div className="bg-n-7/50 rounded-xl p-4 md:p-6 backdrop-blur-sm border border-n-6">
                       <h4 className="h4 mb-6 flex items-center gap-2">
                         <FaCarSide className="text-color-1 text-2xl" />
                         Tu Cotización
@@ -1095,123 +1201,139 @@ ${closingMessage} Gracias.`;
                           )}
 
                           {showSimulation && (
-                            <>
-                              <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
-                                <span className="text-n-3">Valor del Auto:</span>
-                                <span className="text-xl font-semibold text-n-1">{formatCurrency(carPrice)}</span>
-                              </div>
-                              <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
-                                <span className="text-n-3">Enganche:</span>
-                                <span className="text-xl font-semibold text-n-1">{formatCurrency(downPayment)}</span>
-                              </div>
-                              <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
-                                <span className="text-n-3">Monto a Financiar:</span>
-                                <span className="text-xl font-semibold text-n-1">{formatCurrency(loanAmount)}</span>
-                              </div>
-                              <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
-                                <span className="text-n-3">Plazo:</span>
-                                <span className="text-xl font-semibold text-n-1">{termMonths} meses</span>
-                              </div>
-
-                              <div className="p-4 mt-4 bg-n-8/90 rounded-lg border border-n-6">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-n-3">Pago Mensual Estimado:</span>
-                                  <AnimatePresence mode="wait">
-                                    {isCalculating ? (
-                                      <motion.div
-                                        key="loader"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="h-8 flex items-center"
-                                      >
-                                        <div className="w-6 h-6 border-2 border-color-1 border-t-transparent rounded-full animate-spin mr-2"></div>
-                                      </motion.div>
-                                    ) : (
-                                      <motion.span
-                                        key="amount"
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        className={`text-2xl font-bold ${hasPendingChanges ? "text-n-4" : "text-color-1"}`}
-                                      >
-                                        {formatCurrency(animatedPayment)}
-                                        {hasPendingChanges && (
-                                          <motion.span 
-                                            className="ml-2 text-sm bg-yellow-500 text-black px-2 py-1 rounded-full"
-                                            animate={{ 
-                                              opacity: pendingAnimationActive ? [0.7, 1, 0.7] : 1,
-                                              scale: pendingAnimationActive ? [0.95, 1.05, 0.95] : 1 
-                                            }}
-                                            transition={{ 
-                                              duration: 0.6, 
-                                              repeat: Infinity,
-                                              repeatType: "loop"
-                                            }}
-                                          >
-                                            Cambios pendientes
-                                          </motion.span>
-                                        )}
-                                      </motion.span>
-                                    )}
-                                  </AnimatePresence>
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="bg-n-7/50 rounded-xl p-4 md:p-6 backdrop-blur-sm border border-n-6 mt-6"
+                            >
+                              <h4 className="h4 mb-6 flex items-center gap-2">
+                                <FaCarSide className="text-color-1 text-2xl" />
+                                Tu Cotización
+                              </h4>
+                              
+                              <div className="space-y-4">
+                                {/* Formato exactamente como lo pide el usuario */}
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">VALOR DEL AUTO:</span>
+                                  <span className="text-lg font-semibold text-n-1">{formatCurrency(carPrice)}</span>
                                 </div>
-                              </div>
-
-                              {/* Sección de Pago Mensual y Botones */}
-                              <div className="payment-container">
-                                <div className="payment-info">
-                                  <div>
-                                    <div className="text-n-3 mb-1">Pago Mensual Estimado:</div>
-                                    <div className="flex items-center gap-3">
-                                      <div className={`payment-amount ${hasPendingChanges ? 'text-n-4' : 'text-color-1'}`}>
-                                        {formatCurrency(monthlyPayment)}
-                                      </div>
-                                      {hasPendingChanges && (
-                                        <span className="pending-badge">
-                                          Cambios pendientes
-                                        </span>
-                                      )}
-                                    </div>
+                                
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">MONTO A FINANCIAR:</span>
+                                  <span className="text-lg font-semibold text-n-1">{formatCurrency(loanAmount)}</span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">PLAZO:</span>
+                                  <span className="text-lg font-semibold text-n-1">{termMonths} meses</span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">ENGANCHE (Pago inicial a la agencia):</span>
+                                  <span className="text-lg font-semibold text-n-1">{formatCurrency(downPayment)}</span>
+                                </div>
+                                
+                                <div className="my-2 border-t border-n-6"></div>
+                                
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">COMISIÓN POR APERTURA: (mensual)</span>
+                                  <span className="text-lg font-semibold text-n-1">
+                                    {formatCurrency(paymentDetails?.commissionTotal / termMonths)}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center p-3 bg-n-8/70 rounded-lg">
+                                  <span className="text-n-3">GPS: (mensual)</span>
+                                  <span className="text-lg font-semibold text-n-1">
+                                    {formatCurrency(paymentDetails?.gpsPayment)}
+                                  </span>
+                                </div>
+                                
+                                <div className="my-2 border-t border-n-6"></div>
+                                
+                                {/* Pago total */}
+                                <div className="p-4 bg-gradient-to-r from-color-1/10 to-transparent rounded-lg border border-color-1/30">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-n-2 font-medium">PAGO MENSUAL:</span>
+                                    <span className="text-2xl font-bold text-color-1">
+                                      {formatCurrency(monthlyPayment)}
+                                    </span>
                                   </div>
                                 </div>
-
-                                <div className="buttons-container">
-                                  {hasPendingChanges ? (
-                                    <>
-                                      <button
-                                        onClick={handleAutoLoanSimulation}
-                                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
-                                      >
-                                        <BsArrowRight className="text-xl" />
-                                        <span>Actualizar Simulación</span>
-                                      </button>
-                                      <button
-                                        disabled
-                                        className="flex-1 bg-n-6 text-white font-semibold rounded-xl px-6 py-4 opacity-50 cursor-not-allowed"
-                                      >
-                                        Solicitar Crédito
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <button
-                                  onClick={handleLoanApplication}
-                                      disabled={isSubmittingApplication}
-                                      className="flex-1 button button-primary px-6 py-4"
-                                >
-                                  {isSubmittingApplication ? (
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                          <span>Procesando...</span>
-                                    </div>
-                                  ) : (
-                                        'Solicitar Crédito'
-                                  )}
-                                    </button>
-                                  )}
+                                
+                                {/* Botón de solicitud */}
+                                <div className="pt-4">
+                                  <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handleLoanApplication}
+                                    disabled={isSubmittingApplication}
+                                    className="w-full bg-gradient-to-r from-[#33FF57] to-[#40E0D0] text-black font-semibold rounded-xl py-4 transition-all"
+                                  >
+                                    {isSubmittingApplication ? (
+                                      <div className="flex items-center justify-center gap-2">
+                                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                        Enviando Solicitud...
+                                      </div>
+                                    ) : (
+                                      <span className="flex items-center justify-center gap-2">
+                                        Solicitar Este Crédito
+                                        <BsArrowRight />
+                                      </span>
+                                    )}
+                                  </motion.button>
                                 </div>
+                                
+                                {hasPendingChanges && (
+                                  <div className="flex justify-center mt-4">
+                                    <motion.button
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                      onClick={handleAutoLoanSimulation}
+                                      className="bg-yellow-500 text-black font-semibold rounded-xl px-8 py-3 relative overflow-hidden"
+                                    >
+                                      <motion.span 
+                                        className="absolute inset-0 bg-yellow-300/30"
+                                        animate={{
+                                          x: ["0%", "100%"],
+                                          opacity: [0, 0.3, 0]
+                                        }}
+                                        transition={{
+                                          duration: 1.5,
+                                          repeat: Infinity,
+                                          repeatType: "loop"
+                                        }}
+                                      />
+                                      <div className="flex items-center justify-center">
+                                        <span className="mr-1">Actualizar Simulación</span>
+                                        <motion.svg 
+                                          xmlns="http://www.w3.org/2000/svg" 
+                                          width="16" 
+                                          height="16" 
+                                          viewBox="0 0 24 24" 
+                                          fill="none" 
+                                          stroke="currentColor" 
+                                          strokeWidth="2" 
+                                          strokeLinecap="round" 
+                                          strokeLinejoin="round"
+                                          animate={{
+                                            rotate: [0, 360]
+                                          }}
+                                          transition={{
+                                            duration: 4,
+                                            repeat: Infinity,
+                                            ease: "linear"
+                                          }}
+                                        >
+                                          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.25"></path>
+                                          <path d="M21 3v9h-9"></path>
+                                        </motion.svg>
+                                      </div>
+                                    </motion.button>
+                                  </div>
+                                )}
                               </div>
-                            </>
+                            </motion.div>
                           )}
                         </div>
                       )}

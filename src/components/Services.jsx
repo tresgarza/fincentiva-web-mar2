@@ -298,114 +298,9 @@ const Services = () => {
             </div>
           </motion.div>
 
-          {/* Service 2 and 3 - Smaller cards without images */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Service 2 - Credinómina - Adjusted height and spacing */}
-            <motion.div 
-              className="relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-5 overflow-hidden group"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-              onMouseEnter={() => setActiveService('nominal')}
-              onMouseLeave={() => setActiveService(null)}
-              whileHover={{ 
-                borderColor: "rgba(0, 166, 80, 0.5)",
-                boxShadow: "0 10px 30px -10px rgba(0, 166, 80, 0.3)"
-              }}
-              style={{ height: '400px' }}
-            >
-              <div className="absolute top-0 left-0 w-full h-full bg-n-8/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
-              <div className="relative z-2 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="h4 mb-0">Credinómina</h3>
-              </div>
-
-                <div className="flex-grow flex items-center justify-center">
-              <PhotoChatMessage />
-            </div>
-
-                <div className="absolute bottom-5 left-5 z-2">
-                  <Link to="/payroll-loan">
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      className="button px-4 py-2 bg-gradient-to-r from-[#40E0D0] to-[#4DE8B2] text-n-8 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-color-1/20"
-                    >
-                      <span>Conocer más</span>
-                      <BsArrowRight className="text-sm" />
-                    </motion.div>
-                  </Link>
-                </div>
-
-                <div className="absolute bottom-5 right-5 z-2">
-                  <a 
-                    href="https://fincentiva-feb21-2025-front.vercel.app/login"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="button px-4 py-2 bg-color-1/90 hover:bg-color-2 text-black font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs backdrop-blur-sm"
-                  >
-                    <span>Acceso Empresas</span>
-                    <BsArrowRight className="text-xs" />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-            
-            {/* Service 3 - Crédito Automotriz */}
-            <motion.div 
-              className="relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-5 overflow-hidden group"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5 }}
-              onMouseEnter={() => setActiveService('auto')}
-              onMouseLeave={() => setActiveService(null)}
-              whileHover={{ 
-                borderColor: "rgba(0, 166, 80, 0.5)",
-                boxShadow: "0 10px 30px -10px rgba(0, 166, 80, 0.3)"
-              }}
-              style={{ height: '400px' }}
-            >
-              <div className="absolute top-0 left-0 w-full h-full bg-n-8/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
-              <div className="relative z-2 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="h4 mb-0">Crédito Automotriz</h3>
-                </div>
-
-                <div className="flex-grow flex items-center justify-center">
-                  <VideoChatMessage />
-                </div>
-
-                <div className="absolute bottom-5 left-5 z-2">
-                  <Link to="/auto-loan">
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      className="button px-4 py-2 bg-gradient-to-r from-[#40E0D0] to-[#4DE8B2] text-n-8 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-color-1/20"
-                    >
-                      <span>Conocer más</span>
-                      <BsArrowRight className="text-sm" />
-                    </motion.div>
-                  </Link>
-                </div>
-
-                <div className="absolute bottom-5 right-5 z-2">
-                  <Link 
-                    to="/auto-loan"
-                    className="button px-4 py-2 bg-color-1/90 hover:bg-color-2 text-black font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs backdrop-blur-sm"
-                  >
-                    <span>Simular crédito</span>
-                    <BsArrowRight className="text-xs" />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
           {/* Nueva sección del Simulador Automotriz */}
           <motion.div 
-            className="mt-16 relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-8 overflow-hidden"
+            className="mt-10 relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-8 overflow-hidden"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -588,6 +483,31 @@ const Services = () => {
                 </div>
               </div>
             </div>
+          </motion.div>
+        </div>
+
+        {/* Service 2 and 3 - Smaller cards without images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 services-grid">
+          {/* Service 2 - Credinómina - Adjusted height and spacing */}
+          <motion.div 
+            className="relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-5 overflow-hidden group"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            {/* Content of the card */}
+          </motion.div>
+
+          {/* Service 3 - Additional card content */}
+          <motion.div 
+            className="relative z-1 bg-n-8/80 rounded-[2rem] border border-n-6 p-5 overflow-hidden group"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+          >
+            {/* Content of the card */}
           </motion.div>
         </div>
       </div>

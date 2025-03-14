@@ -75,9 +75,9 @@ const Home = () => {
 
   return (
     <div className="relative overflow-hidden">
-      {/* Efectos de fondo animados */}
+      {/* Efectos de fondo animados - Hidden on mobile */}
       <motion.div 
-        className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-gradient-to-r from-[#33FF57]/10 to-[#40E0D0]/10 blur-[120px] rounded-full"
+        className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-gradient-to-r from-[#33FF57]/10 to-[#40E0D0]/10 blur-[120px] rounded-full hidden md:block"
         animate={{
           x: [0, 50, 0],
           y: [0, 30, 0],
@@ -90,7 +90,7 @@ const Home = () => {
         }}
       />
       <motion.div 
-        className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-gradient-to-r from-[#40E0D0]/10 to-[#33FF57]/10 blur-[120px] rounded-full"
+        className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-gradient-to-r from-[#40E0D0]/10 to-[#33FF57]/10 blur-[120px] rounded-full hidden md:block"
         animate={{
           x: [0, -50, 0],
           y: [0, -30, 0],

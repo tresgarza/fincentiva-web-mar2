@@ -372,3 +372,10 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Hide Credinómina and Crédito Automotriz sections on mobile */
+@media (max-width: 767px) {
+  .services-grid {
+    display: none !important;
+  }
+}
